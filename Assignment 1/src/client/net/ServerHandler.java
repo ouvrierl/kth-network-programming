@@ -78,15 +78,18 @@ public class ServerHandler {
                     	}
                     	currentWord.setText(wordPrepared);
                     	attemptsNumber.setText("No value");
+                    	scoreValue.setText(Integer.toString(Integer.parseInt(scoreValue.getText()) + 1));
                     }
                     else if(message.startsWith("DEFEAT")){
-                    	String finalWord = message.substring(8);
+                    	String finalWord = message.substring(7);
+                    	System.out.println(finalWord);
                     	String wordPrepared = "";
                     	for(int i = 0; i < finalWord.length(); i++){
                     		wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
                     	}
                     	currentWord.setText(wordPrepared);
                     	attemptsNumber.setText("No value");
+                    	scoreValue.setText(Integer.toString(Integer.parseInt(scoreValue.getText()) - 1));
                     }
                 }
             } catch (Throwable connectionFailure) {

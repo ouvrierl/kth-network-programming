@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import javax.swing.BoxLayout;
@@ -64,6 +65,12 @@ public class ScreenSwing {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				String proposition = guessWord.getText();
+				if(proposition.length() != 1 && proposition.length() != currentWord.getText().length() / 3){
+					JOptionPane error = new JOptionPane();
+					error.showMessageDialog(null, "The guess must be a letter or the entire word", "Error in the guess", JOptionPane.ERROR_MESSAGE);
+					guessWord.setText("");
+					return;
+				}
 				guessWord.setText("");
 				if(proposition.length() == 1){
 					output.println("LETTER " + proposition);
@@ -80,7 +87,7 @@ public class ScreenSwing {
 		JPanel buttons = new JPanel();
 		send.add(buttons);
 		
-		JButton start = new JButton("Start a new game");
+		JButton start = new JButton("Start a new turn");
 		start.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
@@ -90,7 +97,7 @@ public class ScreenSwing {
 		});
 		buttons.add(start);
 		
-		JButton stop = new JButton("Stop the current game");
+		JButton stop = new JButton("Stop the game");
 		stop.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {

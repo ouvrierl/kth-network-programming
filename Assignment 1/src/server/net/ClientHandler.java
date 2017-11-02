@@ -42,6 +42,7 @@ public class ClientHandler implements Runnable {
                 }
                 if(message.startsWith("START")){
                 	chosenWord = randomWord().toLowerCase();
+                	System.out.println(chosenWord);
                 	remainingFailedAttempts = chosenWord.length();
                 	numberOfLettersFound = 0;
                 	output.println("WELCOME " + chosenWord.length());
@@ -52,16 +53,20 @@ public class ClientHandler implements Runnable {
                 }
                 else if(message.startsWith("LETTER")){
                 	char letter = message.substring(7).charAt(0);
+                	boolean goodLetter = false;
                 	for(int i = 0; i < chosenWord.length(); i++){
                 		if(Character.toLowerCase(chosenWord.charAt(i)) == Character.toLowerCase(letter)){
                 			numberOfLettersFound++;
                 			output.println("FIND " + Character.toLowerCase(letter) + " " + i);
                 			output.flush();
+                			goodLetter = true;
                 		}
                 	}
-                	remainingFailedAttempts--;
-                	output.println("ATTEMPT");
-                	output.flush();
+                	if(!goodLetter){
+                		remainingFailedAttempts--;
+                    	output.println("ATTEMPT");
+                    	output.flush();
+                	}
                 	if(numberOfLettersFound == chosenWord.length()){
                 		output.println("VICTORY " + chosenWord);
                 		output.flush();
@@ -78,7 +83,7 @@ public class ClientHandler implements Runnable {
                 	}
                 }
                 else if(message.startsWith("WORD")){
-                	String wordProposed = message.substring(7);
+                	String wordProposed = message.substring(5);
                 	if(wordProposed.equalsIgnoreCase(chosenWord)){
                 		output.println("VICTORY " + chosenWord);
                 		output.flush();
@@ -86,9 +91,11 @@ public class ClientHandler implements Runnable {
                 		remainingFailedAttempts = Integer.MAX_VALUE;
                 		numberOfLettersFound = Integer.MAX_VALUE;
                 	}
-                	remainingFailedAttempts--;
-                	output.println("ATTEMPT");
-                	output.flush();
+                	else {
+                		remainingFailedAttempts--;
+                    	output.println("ATTEMPT");
+                    	output.flush();
+                	}
                 	if(remainingFailedAttempts == 0){
                 		output.println("DEFEAT" + chosenWord);
                 		output.flush();

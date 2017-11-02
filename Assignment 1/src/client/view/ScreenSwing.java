@@ -13,6 +13,8 @@ import java.awt.Component;
 import javax.swing.Box;
 import java.awt.Dimension;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -23,6 +25,7 @@ public class ScreenSwing {
 	private JLabel attemptsNumber;
 	private JLabel scoreValue;
 	private PrintWriter output;
+	private List <Character> lettersProposed = new ArrayList<>();
 
 	/**
 	 * Create the application.
@@ -67,12 +70,21 @@ public class ScreenSwing {
 				String proposition = guessWord.getText();
 				if(proposition.length() != 1 && proposition.length() != currentWord.getText().length() / 3){
 					JOptionPane error = new JOptionPane();
-					error.showMessageDialog(null, "The guess must be a letter or the entire word", "Error in the guess", JOptionPane.ERROR_MESSAGE);
+					error.showMessageDialog(null, "The guess must be a letter or the entire word", "Wrong guess", JOptionPane.ERROR_MESSAGE);
 					guessWord.setText("");
 					return;
 				}
 				guessWord.setText("");
 				if(proposition.length() == 1){
+					if(lettersProposed.contains(proposition.charAt(0))){
+						JOptionPane error = new JOptionPane();
+						error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter", JOptionPane.ERROR_MESSAGE);
+						guessWord.setText("");
+						return;
+					}
+					else{
+						lettersProposed.add(proposition.charAt(0));
+					}
 					output.println("LETTER " + proposition);
 					output.flush();
 				}
@@ -93,6 +105,7 @@ public class ScreenSwing {
 			public void mouseReleased(MouseEvent e) {
 				output.println("START");
 				output.flush();
+				lettersProposed.clear();
 			}
 		});
 		buttons.add(start);

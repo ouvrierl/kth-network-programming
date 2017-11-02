@@ -82,7 +82,6 @@ public class ServerHandler {
                     }
                     else if(message.startsWith("DEFEAT")){
                     	String finalWord = message.substring(7);
-                    	System.out.println(finalWord);
                     	String wordPrepared = "";
                     	for(int i = 0; i < finalWord.length(); i++){
                     		wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");

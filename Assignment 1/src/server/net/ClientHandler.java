@@ -42,7 +42,6 @@ public class ClientHandler implements Runnable {
                 }
                 if(message.startsWith("START")){
                 	chosenWord = randomWord().toLowerCase();
-                	System.out.println(chosenWord);
                 	remainingFailedAttempts = chosenWord.length();
                 	numberOfLettersFound = 0;
                 	output.println("WELCOME " + chosenWord.length());
@@ -75,7 +74,7 @@ public class ClientHandler implements Runnable {
                 		numberOfLettersFound = Integer.MAX_VALUE;
                 	}
                 	if(remainingFailedAttempts == 0){
-                		output.println("DEFEAT" + chosenWord);
+                		output.println("DEFEAT " + chosenWord);
                 		output.flush();
                 		chosenWord = "";
                 		remainingFailedAttempts = Integer.MAX_VALUE;
@@ -97,7 +96,7 @@ public class ClientHandler implements Runnable {
                     	output.flush();
                 	}
                 	if(remainingFailedAttempts == 0){
-                		output.println("DEFEAT" + chosenWord);
+                		output.println("DEFEAT " + chosenWord);
                 		output.flush();
                 		chosenWord = "";
                 		remainingFailedAttempts = Integer.MAX_VALUE;

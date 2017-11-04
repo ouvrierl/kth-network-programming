@@ -4,7 +4,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HangmanServer {
-	
+
 	private final static int port = 8080;
 
 	public static void main(String[] args) {

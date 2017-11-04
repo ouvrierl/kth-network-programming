@@ -5,7 +5,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.PrintWriter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,28 +19,34 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
-public class ScreenSwing {
+import client.controller.Controller;
+
+public class Screen {
 
 	private JFrame frame;
 	private JLabel currentWord;
-	private JLabel attemptsNumber;
+	private JLabel failedAttemptsRemainingNumber;
 	private JLabel scoreValue;
-	private PrintWriter output;
 	private List<Character> lettersProposed = new ArrayList<>();
+	private Controller controller;
 
 	/**
 	 * Create the application.
 	 */
-	public ScreenSwing(JLabel currentWord, JLabel attemptsNumber, JLabel scoreValue, PrintWriter output) {
-		this.currentWord = currentWord;
-		this.attemptsNumber = attemptsNumber;
-		this.scoreValue = scoreValue;
-		this.output = output;
-		initialize();
+	public Screen() {
+	}
 
+	public void startController() {
+		this.controller = new Controller(this);
+		this.controller.connect("localhost", 8080);
+	}
+
+	public void startView() {
+		this.currentWord = new JLabel("");
+		this.failedAttemptsRemainingNumber = new JLabel("-1");
+		this.scoreValue = new JLabel("0");
+		initialize();
 	}
 
 	/**
@@ -50,8 +57,7 @@ public class ScreenSwing {
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				output.println("QUIT");
-				output.flush();
+				controller.sendMessage("QUIT");
 			}
 		});
 		frame.setBounds(100, 100, 450, 300);
@@ -96,11 +102,9 @@ public class ScreenSwing {
 					} else {
 						lettersProposed.add(proposition.charAt(0));
 					}
-					output.println("LETTER " + proposition);
-					output.flush();
+					controller.sendMessage("LETTER " + proposition);
 				} else {
-					output.println("WORD " + proposition);
-					output.flush();
+					controller.sendMessage("WORD " + proposition);
 				}
 			}
 		});
@@ -113,8 +117,7 @@ public class ScreenSwing {
 		start.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				output.println("START");
-				output.flush();
+				controller.sendMessage("START");
 				lettersProposed.clear();
 			}
 		});
@@ -124,8 +127,7 @@ public class ScreenSwing {
 		stop.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				output.println("QUIT");
-				output.flush();
+				controller.sendMessage("QUIT");
 				frame.dispose();
 			}
 		});
@@ -152,7 +154,7 @@ public class ScreenSwing {
 		JLabel labelAttempts = new JLabel("Number of remaining failed attempts = ");
 		attempts.add(labelAttempts);
 
-		attempts.add(this.attemptsNumber);
+		attempts.add(this.failedAttemptsRemainingNumber);
 
 		JPanel score = new JPanel();
 		game.add(score);
@@ -163,7 +165,24 @@ public class ScreenSwing {
 		score.add(this.scoreValue);
 
 		frame.setVisible(true);
+	}
 
+	public void setWord(String newWord) {
+		currentWord.setText(newWord);
+	}
+
+	public void setScore(int newScore) {
+		scoreValue.setText(Integer.toString(newScore));
+	}
+
+	public void setNumberOfRemainingFailedAttempts(int newNumber) {
+		failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
+	}
+	
+	public void setLetter(char letter, int position){
+		StringBuilder newWord = new StringBuilder(currentWord.getText());
+		newWord.setCharAt(1 + 3 * position, letter);
+		currentWord.setText(newWord.toString());
 	}
 
 }

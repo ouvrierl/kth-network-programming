@@ -7,33 +7,33 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import javax.swing.JLabel;
+import client.controller.Controller;
 
-public class ServerHandler {
+public class ServerConnection {
 	private static final int TIMEOUT_HALF_HOUR = 1800000;
 	private static final int TIMEOUT_HALF_MINUTE = 30000;
 	private Socket socket;
 	private BufferedReader input;
 	public PrintWriter output;
 	private volatile boolean connected;
-	private JLabel currentWord;
-	private JLabel attemptsNumber;
-	private JLabel scoreValue;
-
-	public ServerHandler(JLabel currentWord, JLabel attemptsNumber, JLabel scoreValue) {
-		this.currentWord = currentWord;
-		this.attemptsNumber = attemptsNumber;
-		this.scoreValue = scoreValue;
+	private Controller controller;
+	
+	public ServerConnection(Controller controller){
+		this.controller = controller;
 	}
 
-	public void connect(String host, int port) throws IOException {
-		socket = new Socket();
-		socket.connect(new InetSocketAddress(host, port), TIMEOUT_HALF_MINUTE);
-		socket.setSoTimeout(TIMEOUT_HALF_HOUR);
-		connected = true;
-		output = new PrintWriter(socket.getOutputStream());
-		input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		new Thread(new Listener()).start();
+	public void connect(String host, int port) {
+		try {
+			socket = new Socket();
+			socket.connect(new InetSocketAddress(host, port), TIMEOUT_HALF_MINUTE);
+			socket.setSoTimeout(TIMEOUT_HALF_HOUR);
+			connected = true;
+			output = new PrintWriter(socket.getOutputStream());
+			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			new Thread(new Listener()).start();
+		} catch (Exception e) {
+			// Manage connection client error
+		}
 	}
 
 	public void disconnect() throws IOException {
@@ -49,41 +49,43 @@ public class ServerHandler {
 			try {
 				for (;;) {
 					String message = input.readLine();
+					System.out.println(message);
 					if (message.startsWith("WELCOME")) {
 						int wordSize = Integer.parseInt(message.substring(8));
-						attemptsNumber.setText(Integer.toString(wordSize));
+						controller.setNumberOfRemainingFailedAttempts(wordSize);
 						String wordPrepared = "";
 						for (int i = 0; i < wordSize; i++) {
 							wordPrepared = wordPrepared.concat(" _ ");
 						}
-						currentWord.setText(wordPrepared);
+						controller.setWord(wordPrepared);
 					} else if (message.startsWith("ATTEMPT")) {
-						int currentScore = Integer.parseInt(attemptsNumber.getText());
-						attemptsNumber.setText(Integer.toString(currentScore - 1));
+						int newScore = Integer.parseInt(message.substring(8));
+						controller.setNumberOfRemainingFailedAttempts(newScore);
 					} else if (message.startsWith("FIND")) {
 						char letter = message.charAt(5);
 						int position = Integer.parseInt(message.substring(7));
-						StringBuilder newWord = new StringBuilder(currentWord.getText());
-						newWord.setCharAt(1 + 3 * position, letter);
-						currentWord.setText(newWord.toString());
+						controller.setLetter(letter, position);
+						
 					} else if (message.startsWith("VICTORY")) {
-						String finalWord = message.substring(8);
+						String finalWord = message.substring(8, message.length() - 2);
+						int score = Integer.parseInt(message.substring(message.length() - 2));
 						String wordPrepared = "";
 						for (int i = 0; i < finalWord.length(); i++) {
 							wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
 						}
-						currentWord.setText(wordPrepared);
-						attemptsNumber.setText("No value");
-						scoreValue.setText(Integer.toString(Integer.parseInt(scoreValue.getText()) + 1));
+						controller.setWord(wordPrepared);
+						controller.setNumberOfRemainingFailedAttempts(-1);
+						controller.setScore(score);
 					} else if (message.startsWith("DEFEAT")) {
-						String finalWord = message.substring(7);
+						String finalWord = message.substring(7, message.length() - 2);
+						int score = Integer.parseInt(message.substring(message.length() - 2));
 						String wordPrepared = "";
 						for (int i = 0; i < finalWord.length(); i++) {
 							wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
 						}
-						currentWord.setText(wordPrepared);
-						attemptsNumber.setText("No value");
-						scoreValue.setText(Integer.toString(Integer.parseInt(scoreValue.getText()) - 1));
+						controller.setWord(wordPrepared);
+						controller.setNumberOfRemainingFailedAttempts(-1);
+						controller.setScore(score);
 					}
 				}
 			} catch (Throwable connectionFailure) {
@@ -93,6 +95,11 @@ public class ServerHandler {
 			}
 		}
 
+	}
+
+	public void sendMessage(String message) {
+		output.println(message);
+		output.flush();
 	}
 
 }

@@ -12,7 +12,7 @@ import common.MessageException;
 
 public class ClientHandler implements Runnable {
 
-	private final static String WORDS_FILE = "src/server/net/words.txt";
+	private final static String WORDS_FILE = "src/server/words.txt";
 
 	private final Socket clientSocket;
 	private BufferedReader input;
@@ -21,10 +21,12 @@ public class ClientHandler implements Runnable {
 	private String chosenWord;
 	private int remainingFailedAttempts;
 	private int numberOfLettersFound;
+	private int score;
 
 	public ClientHandler(Socket clientSocket) {
 		this.clientSocket = clientSocket;
 		connected = true;
+		score = 0;
 	}
 
 	@Override
@@ -38,6 +40,7 @@ public class ClientHandler implements Runnable {
 		while (connected) {
 			try {
 				String message = input.readLine();
+				System.out.println(message);
 				if (message == null) {
 					message = "";
 				}
@@ -112,8 +115,9 @@ public class ClientHandler implements Runnable {
 				i++;
 			}
 		} catch (Exception e) {
-			// Manage file IO problem
+			e.printStackTrace();
 		}
+		System.err.println(word);
 		return word.toLowerCase();
 	}
 
@@ -132,12 +136,14 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void defeat() {
-		sendMessage("DEFEAT " + chosenWord);
+		score--;
+		sendMessage("DEFEAT " + chosenWord + " " + score);
 		reset();
 	}
 
 	private void victory() {
-		sendMessage("VICTORY " + chosenWord);
+		score++;
+		sendMessage("VICTORY " + chosenWord + " " + score);
 		reset();
 	}
 
@@ -156,7 +162,7 @@ public class ClientHandler implements Runnable {
 
 	private void failedAttempt() {
 		remainingFailedAttempts--;
-		sendMessage("ATTEMPT");
+		sendMessage("ATTEMPT " + remainingFailedAttempts);
 	}
 
 }

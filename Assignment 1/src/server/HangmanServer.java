@@ -1,4 +1,4 @@
-package server.net;
+package server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,15 +9,15 @@ public class HangmanServer {
 
 	public static void main(String[] args) {
 		try {
-			ServerSocket listeningSocket = new ServerSocket(port);
+			ServerSocket serverSocket = new ServerSocket(port);
 			while (true) {
-				Socket clientSocket = listeningSocket.accept();
+				Socket clientSocket = serverSocket.accept();
 				ClientHandler handler = new ClientHandler(clientSocket);
 				Thread handlerThread = new Thread(handler);
 				handlerThread.start();
 			}
 		} catch (Exception e) {
-			System.err.println("Server failure.");
+			System.err.println("Error during the creation of the server");
 		}
 	}
 

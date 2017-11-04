@@ -3,137 +3,160 @@ package server.net;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.UncheckedIOException;
+import java.io.Reader;
 import java.net.Socket;
 
 import common.MessageException;
 
 public class ClientHandler implements Runnable {
 
-    private final Socket clientSocket;
-    private BufferedReader input;
-    private PrintWriter output;
-    private boolean connected;
-    private String chosenWord;
-    private int remainingFailedAttempts;
-    private int numberOfLettersFound;
-    
-    public ClientHandler(Socket clientSocket) {
-        this.clientSocket = clientSocket;
-        connected = true;
-    }
-    
-    @Override
-    public void run() {
-        try {
-            input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            output = new PrintWriter(clientSocket.getOutputStream());
-        } catch (IOException ioe) {
-            throw new UncheckedIOException(ioe);
-        }
-        while (connected) {
-            try {
-                String message = input.readLine();
-                if(message == null){
-                	message = "";
-                }
-                if(message.startsWith("START")){
-                	chosenWord = randomWord().toLowerCase();
-                	remainingFailedAttempts = chosenWord.length();
-                	numberOfLettersFound = 0;
-                	output.println("WELCOME " + chosenWord.length());
-                	output.flush();
-                }
-                else if(message.equals("QUIT")){
-                	disconnectClient();
-                }
-                else if(message.startsWith("LETTER")){
-                	char letter = message.substring(7).charAt(0);
-                	boolean goodLetter = false;
-                	for(int i = 0; i < chosenWord.length(); i++){
-                		if(Character.toLowerCase(chosenWord.charAt(i)) == Character.toLowerCase(letter)){
-                			numberOfLettersFound++;
-                			output.println("FIND " + Character.toLowerCase(letter) + " " + i);
-                			output.flush();
-                			goodLetter = true;
-                		}
-                	}
-                	if(!goodLetter){
-                		remainingFailedAttempts--;
-                    	output.println("ATTEMPT");
-                    	output.flush();
-                	}
-                	if(numberOfLettersFound == chosenWord.length()){
-                		output.println("VICTORY " + chosenWord);
-                		output.flush();
-                		chosenWord = "";
-                		remainingFailedAttempts = Integer.MAX_VALUE;
-                		numberOfLettersFound = Integer.MAX_VALUE;
-                	}
-                	if(remainingFailedAttempts == 0){
-                		output.println("DEFEAT " + chosenWord);
-                		output.flush();
-                		chosenWord = "";
-                		remainingFailedAttempts = Integer.MAX_VALUE;
-                		numberOfLettersFound = Integer.MAX_VALUE;
-                	}
-                }
-                else if(message.startsWith("WORD")){
-                	String wordProposed = message.substring(5);
-                	if(wordProposed.equalsIgnoreCase(chosenWord)){
-                		output.println("VICTORY " + chosenWord);
-                		output.flush();
-                		chosenWord = "";
-                		remainingFailedAttempts = Integer.MAX_VALUE;
-                		numberOfLettersFound = Integer.MAX_VALUE;
-                	}
-                	else {
-                		remainingFailedAttempts--;
-                    	output.println("ATTEMPT");
-                    	output.flush();
-                	}
-                	if(remainingFailedAttempts == 0){
-                		output.println("DEFEAT " + chosenWord);
-                		output.flush();
-                		chosenWord = "";
-                		remainingFailedAttempts = Integer.MAX_VALUE;
-                		numberOfLettersFound = Integer.MAX_VALUE;
-                	}
-                }
-            } catch (IOException ioe) {
-                disconnectClient();
-                throw new MessageException(ioe);
-            }
-        }
-    }
-    
-    private String randomWord() throws IOException{
-    	String word = "";
-    	BufferedReader words = new BufferedReader(new FileReader(new File("src/server/net/words.txt")));
-    	String line = words.readLine();
-    	int stop = (int)(51527 * Math.random());
-    	int i = 0;
-    	while(line != null){
-    		if(i == stop){
-    			word = line;
-    			break;
-    		}
-    		line = words.readLine();
-    		i++;
-    	}
-    	return word;
-    }
-    
-    private void disconnectClient() {
-        try {
-            clientSocket.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-        connected = false;
-    }
-    
+	private final static String WORDS_FILE = "src/server/net/words.txt";
+
+	private final Socket clientSocket;
+	private BufferedReader input;
+	private PrintWriter output;
+	private boolean connected;
+	private String chosenWord;
+	private int remainingFailedAttempts;
+	private int numberOfLettersFound;
+
+	public ClientHandler(Socket clientSocket) {
+		this.clientSocket = clientSocket;
+		connected = true;
+	}
+
+	@Override
+	public void run() {
+		try {
+			input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			output = new PrintWriter(clientSocket.getOutputStream());
+		} catch (Exception e) {
+			// Manage connection IO problem
+		}
+		while (connected) {
+			try {
+				String message = input.readLine();
+				if (message == null) {
+					message = "";
+				}
+				if (message.startsWith("START")) {
+					start();
+				} else if (message.equals("QUIT")) {
+					quit();
+				} else if (message.startsWith("LETTER")) {
+					if (message.length() != 8) {
+						throw new MessageException("Invalid LETTER message received (one letter needed): " + message);
+					}
+					char letter = message.substring(7).toLowerCase().charAt(0);
+					if (!Character.isLetter(letter)) {
+						throw new MessageException("Invalid LETTER message received (not a letter): " + message);
+					}
+					if (chosenWord.contains(Character.toString(letter))) {
+						for (int i = 0; i < chosenWord.length(); i++) {
+							if (chosenWord.charAt(i) == letter) {
+								numberOfLettersFound++;
+								sendMessage("FIND " + Character.toLowerCase(letter) + " " + i);
+							}
+						}
+					} else {
+						failedAttempt();
+					}
+					if (numberOfLettersFound == chosenWord.length()) {
+						victory();
+					}
+					if (remainingFailedAttempts == 0) {
+						defeat();
+					}
+				} else if (message.startsWith("WORD")) {
+					if (message.length() != chosenWord.length() + 5) {
+						throw new MessageException(
+								"Invalid WORD message received (word of invalid length): " + message);
+					}
+					String wordProposed = message.substring(5).toLowerCase();
+					if (wordProposed.equals(chosenWord)) {
+						victory();
+					} else {
+						failedAttempt();
+					}
+					if (remainingFailedAttempts == 0) {
+						defeat();
+					}
+				} else {
+					throw new MessageException("Invalid message received: " + message);
+				}
+			} catch (Exception e) {
+				quit();
+				throw new MessageException(e);
+			}
+		}
+	}
+
+	/**
+	 * @return a random word taken from the file words.txt
+	 */
+	private String randomWord() {
+		String word = "";
+		try (Reader reader = new FileReader(new File(WORDS_FILE));
+				BufferedReader buffered = new BufferedReader(reader)) {
+			String line = buffered.readLine();
+			int stop = (int) (51527 * Math.random());
+			int i = 0;
+			while (line != null) {
+				if (i == stop) {
+					word = line;
+					break;
+				}
+				line = buffered.readLine();
+				i++;
+			}
+		} catch (Exception e) {
+			// Manage file IO problem
+		}
+		return word.toLowerCase();
+	}
+
+	private void quit() {
+		try {
+			clientSocket.close();
+		} catch (Exception e) {
+			// Manage socket IO problem
+		}
+		connected = false;
+	}
+
+	private void sendMessage(String message) {
+		output.println(message);
+		output.flush();
+	}
+
+	private void defeat() {
+		sendMessage("DEFEAT " + chosenWord);
+		reset();
+	}
+
+	private void victory() {
+		sendMessage("VICTORY " + chosenWord);
+		reset();
+	}
+
+	private void reset() {
+		chosenWord = "";
+		remainingFailedAttempts = Integer.MAX_VALUE;
+		numberOfLettersFound = Integer.MAX_VALUE;
+	}
+
+	private void start() {
+		chosenWord = randomWord();
+		remainingFailedAttempts = chosenWord.length();
+		numberOfLettersFound = 0;
+		sendMessage("WELCOME " + chosenWord.length());
+	}
+
+	private void failedAttempt() {
+		remainingFailedAttempts--;
+		sendMessage("ATTEMPT");
+	}
+
 }

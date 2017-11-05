@@ -21,55 +21,44 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import client.controller.Controller;
+import client.net.OutputHandler;
 
 public class Screen {
 
 	private JFrame frame;
-	private JLabel currentWord;
-	private JLabel failedAttemptsRemainingNumber;
-	private JLabel scoreValue;
 	private List<Character> lettersProposed = new ArrayList<>();
 	private Controller controller;
-
-	/**
-	 * Create the application.
-	 */
-	public Screen() {
-	}
+	private JLabel currentWord = new JLabel("");
+	private JLabel failedAttemptsRemainingNumber = new JLabel("-1");
+	private JLabel scoreValue = new JLabel("0");
 
 	public void startController() {
-		this.controller = new Controller(this);
-		this.controller.connect("localhost", 8080);
+		this.controller = new Controller();
+		this.controller.connect("localhost", 8080, new OutputView());
 	}
 
 	public void startView() {
-		this.currentWord = new JLabel("");
-		this.failedAttemptsRemainingNumber = new JLabel("-1");
-		this.scoreValue = new JLabel("0");
-		initialize();
+		this.initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
 	private void initialize() {
-		frame = new JFrame();
-		frame.addWindowListener(new WindowAdapter() {
+		this.frame = new JFrame();
+		this.frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				controller.sendMessage("QUIT");
+				controller.disconnect();
 			}
 		});
-		frame.setBounds(100, 100, 450, 300);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(new BorderLayout(0, 0));
+		this.frame.setBounds(100, 100, 450, 300);
+		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		JLabel hangman = new JLabel("The Hangman game");
 		hangman.setHorizontalAlignment(SwingConstants.CENTER);
-		frame.getContentPane().add(hangman, BorderLayout.NORTH);
+		this.frame.getContentPane().add(hangman, BorderLayout.NORTH);
 
 		JPanel send = new JPanel();
-		frame.getContentPane().add(send, BorderLayout.SOUTH);
+		this.frame.getContentPane().add(send, BorderLayout.SOUTH);
 		send.setLayout(new BoxLayout(send, BoxLayout.Y_AXIS));
 
 		JPanel guess = new JPanel();
@@ -127,14 +116,14 @@ public class Screen {
 		stop.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				controller.sendMessage("QUIT");
+				controller.disconnect();
 				frame.dispose();
 			}
 		});
 		buttons.add(stop);
 
 		JPanel game = new JPanel();
-		frame.getContentPane().add(game, BorderLayout.CENTER);
+		this.frame.getContentPane().add(game, BorderLayout.CENTER);
 		game.setLayout(new BoxLayout(game, BoxLayout.Y_AXIS));
 
 		Component rigidArea = Box.createRigidArea(new Dimension(20, 20));
@@ -164,25 +153,70 @@ public class Screen {
 
 		score.add(this.scoreValue);
 
-		frame.setVisible(true);
+		this.frame.setVisible(true);
 	}
 
 	public void setWord(String newWord) {
-		currentWord.setText(newWord);
+		this.currentWord.setText(newWord);
 	}
 
 	public void setScore(int newScore) {
-		scoreValue.setText(Integer.toString(newScore));
+		this.scoreValue.setText(Integer.toString(newScore));
 	}
 
 	public void setNumberOfRemainingFailedAttempts(int newNumber) {
-		failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
+		this.failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
 	}
 
 	public void setLetter(char letter, int position) {
 		StringBuilder newWord = new StringBuilder(currentWord.getText());
 		newWord.setCharAt(1 + 3 * position, letter);
-		currentWord.setText(newWord.toString());
+		this.currentWord.setText(newWord.toString());
+	}
+
+	private class OutputView implements OutputHandler {
+
+		@Override
+		public void handleMessage(String message) {
+			if (message.startsWith("WELCOME")) {
+				int wordSize = Integer.parseInt(message.substring(8));
+				setNumberOfRemainingFailedAttempts(wordSize);
+				String wordPrepared = "";
+				for (int i = 0; i < wordSize; i++) {
+					wordPrepared = wordPrepared.concat(" _ ");
+				}
+				setWord(wordPrepared);
+			} else if (message.startsWith("ATTEMPT")) {
+				int newScore = Integer.parseInt(message.substring(8));
+				setNumberOfRemainingFailedAttempts(newScore);
+			} else if (message.startsWith("FIND")) {
+				char letter = message.charAt(5);
+				int position = Integer.parseInt(message.substring(7));
+				setLetter(letter, position);
+
+			} else if (message.startsWith("VICTORY")) {
+				String finalWord = message.substring(8, message.length() - 2);
+				int score = Integer.parseInt(message.substring(message.length() - 2));
+				String wordPrepared = "";
+				for (int i = 0; i < finalWord.length(); i++) {
+					wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+				}
+				setWord(wordPrepared);
+				setNumberOfRemainingFailedAttempts(-1);
+				setScore(score);
+			} else if (message.startsWith("DEFEAT")) {
+				String finalWord = message.substring(7, message.length() - 2);
+				int score = Integer.parseInt(message.substring(message.length() - 2));
+				String wordPrepared = "";
+				for (int i = 0; i < finalWord.length(); i++) {
+					wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+				}
+				setWord(wordPrepared);
+				setNumberOfRemainingFailedAttempts(-1);
+				setScore(score);
+			}
+		}
+
 	}
 
 }

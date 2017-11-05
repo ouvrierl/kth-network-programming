@@ -2,11 +2,8 @@ package common;
 
 public class IOException extends RuntimeException {
 
-	public IOException(String msg) {
-		super(msg);
+	public IOException(String message) {
+		super(message);
 	}
 
-	public IOException(Throwable rootCause) {
-		super(rootCause);
-	}
 }

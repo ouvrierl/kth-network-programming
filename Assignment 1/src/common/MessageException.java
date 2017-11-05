@@ -2,11 +2,8 @@ package common;
 
 public class MessageException extends RuntimeException {
 
-	public MessageException(String msg) {
-		super(msg);
+	public MessageException(String message) {
+		super(message);
 	}
 
-	public MessageException(Throwable rootCause) {
-		super(rootCause);
-	}
 }

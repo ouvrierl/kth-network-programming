@@ -20,20 +20,20 @@ public class Controller {
 	public void sendMessage(String message) {
 		serverConnection.sendMessage(message);
 	}
-	
-	public void setScore(int newScore){
+
+	public void setScore(int newScore) {
 		screen.setScore(newScore);
 	}
-	
-	public void setWord(String newWord){
+
+	public void setWord(String newWord) {
 		screen.setWord(newWord);
 	}
-	
-	public void setLetter(char letter, int position){
+
+	public void setLetter(char letter, int position) {
 		screen.setLetter(letter, position);
 	}
-	
-	public void setNumberOfRemainingFailedAttempts(int newNumber){
+
+	public void setNumberOfRemainingFailedAttempts(int newNumber) {
 		screen.setNumberOfRemainingFailedAttempts(newNumber);
 	}
 }

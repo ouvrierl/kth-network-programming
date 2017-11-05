@@ -178,8 +178,8 @@ public class Screen {
 	public void setNumberOfRemainingFailedAttempts(int newNumber) {
 		failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
 	}
-	
-	public void setLetter(char letter, int position){
+
+	public void setLetter(char letter, int position) {
 		StringBuilder newWord = new StringBuilder(currentWord.getText());
 		newWord.setCharAt(1 + 3 * position, letter);
 		currentWord.setText(newWord.toString());

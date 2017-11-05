@@ -10,7 +10,7 @@ public class HangmanServer {
 	private static final int PORT = 8080;
 
 	public static void main(String[] args) {
-		try (ServerSocket serverSocket = new ServerSocket(PORT);){
+		try (ServerSocket serverSocket = new ServerSocket(PORT);) {
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
 				ClientHandler clientHandler = new ClientHandler(clientSocket);

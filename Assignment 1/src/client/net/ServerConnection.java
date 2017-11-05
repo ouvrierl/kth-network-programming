@@ -17,8 +17,8 @@ public class ServerConnection {
 	public PrintWriter output;
 	private volatile boolean connected;
 	private Controller controller;
-	
-	public ServerConnection(Controller controller){
+
+	public ServerConnection(Controller controller) {
 		this.controller = controller;
 	}
 
@@ -65,7 +65,7 @@ public class ServerConnection {
 						char letter = message.charAt(5);
 						int position = Integer.parseInt(message.substring(7));
 						controller.setLetter(letter, position);
-						
+
 					} else if (message.startsWith("VICTORY")) {
 						String finalWord = message.substring(8, message.length() - 2);
 						int score = Integer.parseInt(message.substring(message.length() - 2));

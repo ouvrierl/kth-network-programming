@@ -8,25 +8,25 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.Socket;
 
+import common.ConnectionException;
+import common.IOException;
 import common.MessageException;
 
 public class ClientHandler implements Runnable {
 
-	private final static String WORDS_FILE = "src/server/words.txt";
+	private static final String WORDS_FILE = "src/server/words.txt";
 
 	private final Socket clientSocket;
 	private BufferedReader input;
 	private PrintWriter output;
-	private boolean connected;
-	private String chosenWord;
-	private int remainingFailedAttempts;
-	private int numberOfLettersFound;
-	private int score;
+	private boolean connected = true;
+	private String chosenWord = "";
+	private int remainingFailedAttempts = 0;
+	private int numberOfLettersFound = 0;
+	private int score = 0;
 
 	public ClientHandler(Socket clientSocket) {
 		this.clientSocket = clientSocket;
-		connected = true;
-		score = 0;
 	}
 
 	@Override
@@ -35,12 +35,11 @@ public class ClientHandler implements Runnable {
 			input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			output = new PrintWriter(clientSocket.getOutputStream());
 		} catch (Exception e) {
-			// Manage connection IO problem
+			throw new ConnectionException("Error during the server connection");
 		}
 		while (connected) {
 			try {
 				String message = input.readLine();
-				System.out.println(message);
 				if (message == null) {
 					message = "";
 				}
@@ -91,7 +90,7 @@ public class ClientHandler implements Runnable {
 				}
 			} catch (Exception e) {
 				quit();
-				throw new MessageException(e);
+				throw new MessageException("Error in reading server input");
 			}
 		}
 	}
@@ -115,9 +114,8 @@ public class ClientHandler implements Runnable {
 				i++;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new IOException("Error in reading words file");
 		}
-		System.err.println(word);
 		return word.toLowerCase();
 	}
 
@@ -125,7 +123,7 @@ public class ClientHandler implements Runnable {
 		try {
 			clientSocket.close();
 		} catch (Exception e) {
-			// Manage socket IO problem
+			throw new IOException("Error in closing the client socket");
 		}
 		connected = false;
 	}

@@ -7,8 +7,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -22,11 +20,11 @@ import javax.swing.SwingConstants;
 
 import client.controller.Controller;
 import client.net.OutputHandler;
+import common.MessageException;
 
 public class Screen {
 
 	private JFrame frame;
-	private List<Character> lettersProposed = new ArrayList<>();
 	private Controller controller;
 	private JLabel currentWord = new JLabel("");
 	private JLabel failedAttemptsRemainingNumber = new JLabel("-1");
@@ -82,15 +80,6 @@ public class Screen {
 				}
 				guessWord.setText("");
 				if (proposition.length() == 1) {
-					if (lettersProposed.contains(proposition.charAt(0))) {
-						JOptionPane error = new JOptionPane();
-						error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
-								JOptionPane.ERROR_MESSAGE);
-						guessWord.setText("");
-						return;
-					} else {
-						lettersProposed.add(proposition.charAt(0));
-					}
 					controller.sendMessage("LETTER " + proposition);
 				} else {
 					controller.sendMessage("WORD " + proposition);
@@ -107,7 +96,6 @@ public class Screen {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				controller.sendMessage("START");
-				lettersProposed.clear();
 			}
 		});
 		buttons.add(start);
@@ -214,6 +202,12 @@ public class Screen {
 				setWord(wordPrepared);
 				setNumberOfRemainingFailedAttempts(-1);
 				setScore(score);
+			} else if (message.startsWith("ERRORLETTER")) {
+				JOptionPane error = new JOptionPane();
+				error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
+						JOptionPane.ERROR_MESSAGE);
+			} else {
+				throw new MessageException("Invalid message received: " + message);
 			}
 		}
 

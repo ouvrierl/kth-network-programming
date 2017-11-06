@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import common.ConnectionException;
 import common.IOException;
@@ -24,6 +26,7 @@ public class ClientHandler implements Runnable {
 	private int remainingFailedAttempts = 0;
 	private int numberOfLettersFound = 0;
 	private int score = 0;
+	private List<Character> lettersProposed = new ArrayList<>();
 
 	public ClientHandler(Socket clientSocket) {
 		this.clientSocket = clientSocket;
@@ -55,21 +58,26 @@ public class ClientHandler implements Runnable {
 					if (!Character.isLetter(letter)) {
 						throw new MessageException("Invalid LETTER message received (not a letter): " + message);
 					}
-					if (this.chosenWord.contains(Character.toString(letter))) {
-						for (int i = 0; i < chosenWord.length(); i++) {
-							if (this.chosenWord.charAt(i) == letter) {
-								this.numberOfLettersFound++;
-								sendMessage("FIND " + Character.toLowerCase(letter) + " " + i);
-							}
-						}
+					if (this.lettersProposed.contains(letter)) {
+						letterAlreadyProposed();
 					} else {
-						this.failedAttempt();
-					}
-					if (this.numberOfLettersFound == this.chosenWord.length()) {
-						this.victory();
-					}
-					if (this.remainingFailedAttempts == 0) {
-						this.defeat();
+						this.lettersProposed.add(letter);
+						if (this.chosenWord.contains(Character.toString(letter))) {
+							for (int i = 0; i < chosenWord.length(); i++) {
+								if (this.chosenWord.charAt(i) == letter) {
+									this.numberOfLettersFound++;
+									sendMessage("FIND " + Character.toLowerCase(letter) + " " + i);
+								}
+							}
+						} else {
+							this.failedAttempt();
+						}
+						if (this.numberOfLettersFound == this.chosenWord.length()) {
+							this.victory();
+						}
+						if (this.remainingFailedAttempts == 0) {
+							this.defeat();
+						}
 					}
 				} else if (message.startsWith("WORD")) {
 					if (message.length() != this.chosenWord.length() + 5) {
@@ -119,6 +127,10 @@ public class ClientHandler implements Runnable {
 		return word.toLowerCase();
 	}
 
+	private void letterAlreadyProposed() {
+		sendMessage("ERRORLETTER");
+	}
+
 	private void quit() {
 		try {
 			this.clientSocket.close();
@@ -156,6 +168,7 @@ public class ClientHandler implements Runnable {
 		this.remainingFailedAttempts = chosenWord.length();
 		this.numberOfLettersFound = 0;
 		this.sendMessage("WELCOME " + chosenWord.length());
+		this.lettersProposed.clear();
 	}
 
 	private void failedAttempt() {

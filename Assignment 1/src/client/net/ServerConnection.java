@@ -13,13 +13,12 @@ public class ServerConnection {
 	private Socket socket;
 	private BufferedReader input;
 	public PrintWriter output;
-	private volatile boolean connected;
+	private volatile boolean connected = true;
 
 	public void connect(String host, int port, OutputHandler outputHandler) {
 		try {
 			this.socket = new Socket();
 			this.socket.connect(new InetSocketAddress(host, port));
-			this.connected = true;
 			this.output = new PrintWriter(socket.getOutputStream());
 			this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			new Thread(new Listener(outputHandler)).start();

@@ -7,6 +7,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -21,9 +23,12 @@ import javax.swing.SwingConstants;
 import client.controller.Controller;
 import client.net.OutputHandler;
 import common.MessageException;
+import common.MessageType;
 
 public class Screen {
 
+	private static final int PORT = 8080;
+	private static final String ADDRESS = "localhost";
 	private JFrame frame;
 	private Controller controller;
 	private JLabel currentWord = new JLabel("");
@@ -32,7 +37,7 @@ public class Screen {
 
 	public void startController() {
 		this.controller = new Controller();
-		this.controller.connect("localhost", 8080, new OutputView());
+		this.controller.connect(ADDRESS, PORT, new OutputView());
 	}
 
 	public void startView() {
@@ -144,73 +149,122 @@ public class Screen {
 		this.frame.setVisible(true);
 	}
 
-	public void setWord(String newWord) {
+	private void setWord(String newWord) {
 		this.currentWord.setText(newWord);
 	}
 
-	public void setScore(int newScore) {
+	private void setScore(int newScore) {
 		this.scoreValue.setText(Integer.toString(newScore));
 	}
 
-	public void setNumberOfRemainingFailedAttempts(int newNumber) {
+	private void setNumberOfRemainingFailedAttempts(int newNumber) {
 		this.failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
 	}
 
-	public void setLetter(char letter, int position) {
+	private void setLetter(char letter, int position) {
 		StringBuilder newWord = new StringBuilder(currentWord.getText());
 		newWord.setCharAt(1 + 3 * position, letter);
 		this.currentWord.setText(newWord.toString());
 	}
 
+	private void welcome(Message message) {
+		int wordSize = Integer.parseInt(message.messageBody.get(0));
+		this.setNumberOfRemainingFailedAttempts(wordSize);
+		String wordPrepared = "";
+		for (int i = 0; i < wordSize; i++) {
+			wordPrepared = wordPrepared.concat(" _ ");
+		}
+		this.setWord(wordPrepared);
+	}
+
+	private void defeat(Message message) {
+		String finalWord = message.messageBody.get(0);
+		int score = Integer.parseInt(message.messageBody.get(1));
+		String wordPrepared = "";
+		for (int i = 0; i < finalWord.length(); i++) {
+			wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+		}
+		this.setWord(wordPrepared);
+		this.setNumberOfRemainingFailedAttempts(-1);
+		this.setScore(score);
+	}
+
+	private void victory(Message message) {
+		String finalWord = message.messageBody.get(0);
+		int score = Integer.parseInt(message.messageBody.get(1));
+		String wordPrepared = "";
+		for (int i = 0; i < finalWord.length(); i++) {
+			wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+		}
+		this.setWord(wordPrepared);
+		this.setNumberOfRemainingFailedAttempts(-1);
+		this.setScore(score);
+	}
+
+	private void attempt(Message message) {
+		int newScore = Integer.parseInt(message.messageBody.get(0));
+		this.setNumberOfRemainingFailedAttempts(newScore);
+	}
+
+	private void find(Message message) {
+		char letter = message.messageBody.get(0).charAt(0);
+		int position = Integer.parseInt(message.messageBody.get(1));
+		this.setLetter(letter, position);
+	}
+
+	private void errorLetter() {
+		JOptionPane error = new JOptionPane();
+		error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
+				JOptionPane.ERROR_MESSAGE);
+	}
+
 	private class OutputView implements OutputHandler {
 
 		@Override
-		public void handleMessage(String message) {
-			if (message.startsWith("WELCOME")) {
-				int wordSize = Integer.parseInt(message.substring(8));
-				setNumberOfRemainingFailedAttempts(wordSize);
-				String wordPrepared = "";
-				for (int i = 0; i < wordSize; i++) {
-					wordPrepared = wordPrepared.concat(" _ ");
-				}
-				setWord(wordPrepared);
-			} else if (message.startsWith("ATTEMPT")) {
-				int newScore = Integer.parseInt(message.substring(8));
-				setNumberOfRemainingFailedAttempts(newScore);
-			} else if (message.startsWith("FIND")) {
-				char letter = message.charAt(5);
-				int position = Integer.parseInt(message.substring(7));
-				setLetter(letter, position);
-
-			} else if (message.startsWith("VICTORY")) {
-				String finalWord = message.substring(8, message.length() - 2);
-				int score = Integer.parseInt(message.substring(message.length() - 2));
-				String wordPrepared = "";
-				for (int i = 0; i < finalWord.length(); i++) {
-					wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
-				}
-				setWord(wordPrepared);
-				setNumberOfRemainingFailedAttempts(-1);
-				setScore(score);
-			} else if (message.startsWith("DEFEAT")) {
-				String finalWord = message.substring(7, message.length() - 2);
-				int score = Integer.parseInt(message.substring(message.length() - 2));
-				String wordPrepared = "";
-				for (int i = 0; i < finalWord.length(); i++) {
-					wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
-				}
-				setWord(wordPrepared);
-				setNumberOfRemainingFailedAttempts(-1);
-				setScore(score);
-			} else if (message.startsWith("ERRORLETTER")) {
-				JOptionPane error = new JOptionPane();
-				error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
-						JOptionPane.ERROR_MESSAGE);
-			} else {
+		public void handleMessage(String messageReceived) {
+			Message message = new Message(messageReceived);
+			switch (message.messageType) {
+			case MessageType.WELCOME:
+				welcome(message);
+				break;
+			case MessageType.ATTEMPT:
+				attempt(message);
+				break;
+			case MessageType.DEFEAT:
+				defeat(message);
+				break;
+			case MessageType.VICTORY:
+				victory(message);
+				break;
+			case MessageType.FIND:
+				find(message);
+				break;
+			case MessageType.ERRORLETTER:
+				errorLetter();
+				break;
+			default:
 				throw new MessageException("Invalid message received: " + message);
 			}
 		}
+	}
 
+	private static class Message {
+
+		private String messageType;
+		private List<String> messageBody;
+
+		private Message(String message) {
+			this.parse(message);
+		}
+
+		private void parse(String message) {
+			String[] split = message.split(MessageType.DELIMITER);
+			this.messageType = split[0];
+			this.messageBody = new ArrayList<>();
+			for (int i = 1; i < split.length; i++) {
+				this.messageBody.add(split[i]);
+			}
+		}
 	}
 
 }

@@ -243,7 +243,7 @@ public class Screen {
 				errorLetter();
 				break;
 			default:
-				throw new MessageException("Invalid message received: " + message);
+				throw new MessageException("Invalid message received: " + messageReceived);
 			}
 		}
 	}

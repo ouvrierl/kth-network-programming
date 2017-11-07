@@ -14,8 +14,7 @@ public class HangmanServer {
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
 				ClientHandler clientHandler = new ClientHandler(clientSocket);
-				Thread thread = new Thread(clientHandler);
-				thread.start();
+				new Thread(clientHandler).start();
 			}
 		} catch (Exception e) {
 			throw new ConnectionException("Error during server launch on port " + PORT);

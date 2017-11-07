@@ -59,7 +59,7 @@ public class ClientHandler implements Runnable {
 					manageWord(message);
 					break;
 				default:
-					throw new MessageException("Invalid message received: " + message);
+					throw new MessageException("Invalid message received: " + messageReceived);
 				}
 			} catch (Exception e) {
 				quit();

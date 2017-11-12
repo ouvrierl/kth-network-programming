@@ -7,7 +7,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import common.ConnectionException;
-import common.IOException;
+import common.MessageException;
+import common.MessageType;
 
 public class ServerConnection {
 	private Socket socket;
@@ -27,8 +28,12 @@ public class ServerConnection {
 		}
 	}
 
+	public void start() {
+		this.sendMessage(MessageType.START);
+	}
+
 	public void disconnect() {
-		this.sendMessage("QUIT");
+		this.sendMessage(MessageType.QUIT);
 		try {
 			this.socket.close();
 		} catch (Exception e) {
@@ -45,7 +50,7 @@ public class ServerConnection {
 
 	private class Listener implements Runnable {
 
-		OutputHandler outputHandler;
+		private OutputHandler outputHandler;
 
 		private Listener(OutputHandler outputHandler) {
 			this.outputHandler = outputHandler;
@@ -60,7 +65,7 @@ public class ServerConnection {
 				}
 			} catch (Exception e) {
 				if (connected) {
-					throw new IOException("Error in reading client input");
+					throw new MessageException(e.getMessage());
 				}
 			}
 		}

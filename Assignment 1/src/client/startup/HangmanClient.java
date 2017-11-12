@@ -8,8 +8,7 @@ public class HangmanClient {
 
 	public static void main(String[] args) throws IOException {
 		Screen screen = new Screen();
-		screen.startController();
-		screen.startView();
+		screen.start();
 	}
 
 }

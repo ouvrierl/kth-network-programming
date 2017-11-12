@@ -19,6 +19,10 @@ public class Controller {
 		this.serverConnection.disconnect();
 	}
 
+	public void start() {
+		this.serverConnection.start();
+	}
+
 	public void sendMessage(String message) {
 		this.serverConnection.sendMessage(message);
 	}

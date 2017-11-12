@@ -12,6 +12,7 @@ import java.util.List;
 
 import common.ConnectionException;
 import common.IOException;
+import common.Message;
 import common.MessageException;
 import common.MessageType;
 
@@ -28,6 +29,7 @@ public class ClientHandler implements Runnable {
 	private int numberOfLettersFound = 0;
 	private int score = 0;
 	private List<Character> lettersProposed = new ArrayList<>();
+	private boolean turnLaunch = false;
 
 	public ClientHandler(Socket clientSocket) {
 		this.clientSocket = clientSocket;
@@ -45,12 +47,12 @@ public class ClientHandler implements Runnable {
 			try {
 				String messageReceived = this.input.readLine();
 				Message message = new Message(messageReceived);
-				switch (message.messageType) {
+				switch (message.getMessageType()) {
 				case MessageType.START:
-					this.start();
+					this.start(message);
 					break;
 				case MessageType.QUIT:
-					this.quit();
+					this.quit(message);
 					break;
 				case MessageType.LETTER:
 					manageLetter(message);
@@ -63,7 +65,7 @@ public class ClientHandler implements Runnable {
 				}
 			} catch (Exception e) {
 				quit();
-				throw new MessageException("Error in reading server input");
+				throw new MessageException(e.getMessage());
 			}
 		}
 	}
@@ -87,6 +89,7 @@ public class ClientHandler implements Runnable {
 				i++;
 			}
 		} catch (Exception e) {
+			this.quit();
 			throw new IOException("Error in reading words file");
 		}
 		return word.toLowerCase();
@@ -97,52 +100,78 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void manageWord(Message message) {
-		if (message.messageBody.isEmpty() || message.messageBody.size() > 1
-				|| message.messageBody.get(0).length() != chosenWord.length()) {
-			throw new MessageException("Invalid WORD message received (word of invalid length): " + message);
-		}
-		String wordProposed = message.messageBody.get(0).toLowerCase();
-		if (wordProposed.equals(this.chosenWord)) {
-			this.victory();
+		if (!turnLaunch) {
+			turnNotBegan();
 		} else {
-			this.failedAttempt();
-		}
-		if (this.remainingFailedAttempts == 0) {
-			this.defeat();
-		}
-	}
-
-	private void manageLetter(Message message) {
-		if (message.messageBody.isEmpty() || message.messageBody.size() > 1
-				|| message.messageBody.get(0).length() != 1) {
-			throw new MessageException("Invalid LETTER message received (one letter needed): " + message);
-		}
-		char letter = message.messageBody.get(0).toLowerCase().charAt(0);
-		if (!Character.isLetter(letter)) {
-			throw new MessageException("Invalid LETTER message received (not a letter): " + message);
-		}
-		if (this.lettersProposed.contains(letter)) {
-			letterAlreadyProposed();
-		} else {
-			this.lettersProposed.add(letter);
-			if (this.chosenWord.contains(Character.toString(letter))) {
-				for (int i = 0; i < chosenWord.length(); i++) {
-					if (this.chosenWord.charAt(i) == letter) {
-						this.numberOfLettersFound++;
-						this.sendMessage(MessageType.FIND, Character.toString(Character.toLowerCase(letter)),
-								Integer.toString(i));
-					}
-				}
+			if (message.getMessageBody().size() != 1) {
+				throw new MessageException("Invalid WORD message received (invalid number of arguments): " + message);
+			}
+			if (message.getMessageBody().get(0).length() != chosenWord.length()) {
+				throw new MessageException("Invalid WORD message received (word of invalid length): " + message);
+			}
+			String wordProposed = message.getMessageBody().get(0).toLowerCase();
+			if (wordProposed.equals(this.chosenWord)) {
+				this.victory();
 			} else {
 				this.failedAttempt();
-			}
-			if (this.numberOfLettersFound == this.chosenWord.length()) {
-				this.victory();
 			}
 			if (this.remainingFailedAttempts == 0) {
 				this.defeat();
 			}
 		}
+	}
+
+	private void turnNotBegan() {
+		this.sendMessage(MessageType.ERRORTURN);
+	}
+
+	private void manageLetter(Message message) {
+		if (!turnLaunch) {
+			turnNotBegan();
+		} else {
+			if (message.getMessageBody().size() != 1) {
+				this.quit();
+				throw new MessageException("Invalid LETTER message received (invalid number of arguments): " + message);
+			}
+			if (message.getMessageBody().get(0).length() != 1) {
+				this.quit();
+				throw new MessageException("Invalid LETTER message received (one letter needed): " + message);
+			}
+			char letter = message.getMessageBody().get(0).toLowerCase().charAt(0);
+			if (!Character.isLetter(letter)) {
+				this.quit();
+				throw new MessageException("Invalid LETTER message received (not a letter): " + message);
+			}
+			if (this.lettersProposed.contains(letter)) {
+				letterAlreadyProposed();
+			} else {
+				this.lettersProposed.add(letter);
+				if (this.chosenWord.contains(Character.toString(letter))) {
+					for (int i = 0; i < chosenWord.length(); i++) {
+						if (this.chosenWord.charAt(i) == letter) {
+							this.numberOfLettersFound++;
+							this.sendMessage(MessageType.FIND, Character.toString(Character.toLowerCase(letter)),
+									Integer.toString(i));
+						}
+					}
+				} else {
+					this.failedAttempt();
+				}
+				if (this.numberOfLettersFound == this.chosenWord.length()) {
+					this.victory();
+				}
+				if (this.remainingFailedAttempts == 0) {
+					this.defeat();
+				}
+			}
+		}
+	}
+
+	private void quit(Message message) {
+		if (!message.getMessageBody().isEmpty()) {
+			throw new MessageException("Invalid QUIT message received (no argument needed):" + message);
+		}
+		this.quit();
 	}
 
 	private void quit() {
@@ -181,38 +210,25 @@ public class ClientHandler implements Runnable {
 		this.chosenWord = "";
 		this.remainingFailedAttempts = Integer.MAX_VALUE;
 		this.numberOfLettersFound = Integer.MAX_VALUE;
+		this.turnLaunch = false;
 	}
 
-	private void start() {
+	private void start(Message message) {
+		if (!message.getMessageBody().isEmpty()) {
+			this.quit();
+			throw new MessageException("Invalid START message received (no argument needed):" + message);
+		}
 		this.chosenWord = randomWord();
 		this.remainingFailedAttempts = chosenWord.length();
 		this.numberOfLettersFound = 0;
 		this.sendMessage(MessageType.WELCOME, Integer.toString(this.chosenWord.length()));
 		this.lettersProposed.clear();
+		this.turnLaunch = true;
 	}
 
 	private void failedAttempt() {
 		this.remainingFailedAttempts--;
 		this.sendMessage(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts));
-	}
-
-	private static class Message {
-
-		private String messageType;
-		private List<String> messageBody;
-
-		private Message(String message) {
-			this.parse(message);
-		}
-
-		private void parse(String message) {
-			String[] split = message.split(MessageType.DELIMITER);
-			this.messageType = split[0];
-			this.messageBody = new ArrayList<>();
-			for (int i = 1; i < split.length; i++) {
-				this.messageBody.add(split[i]);
-			}
-		}
 	}
 
 }

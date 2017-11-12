@@ -19,6 +19,7 @@ public class MessageType {
 	public static final String DEFEAT = "DEFEAT";
 	public static final String FIND = "FIND";
 	public static final String ERRORLETTER = "ERRORLETTER";
+	public static final String ERRORTURN = "ERRORTURN";
 
 	public static final String DELIMITER = " ";
 

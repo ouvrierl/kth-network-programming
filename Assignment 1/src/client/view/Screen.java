@@ -7,8 +7,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -22,6 +20,7 @@ import javax.swing.SwingConstants;
 
 import client.controller.Controller;
 import client.net.OutputHandler;
+import common.Message;
 import common.MessageException;
 import common.MessageType;
 
@@ -29,18 +28,21 @@ public class Screen {
 
 	private static final int PORT = 8080;
 	private static final String ADDRESS = "localhost";
+
 	private JFrame frame;
 	private Controller controller;
 	private JLabel currentWord = new JLabel("");
 	private JLabel failedAttemptsRemainingNumber = new JLabel("-1");
 	private JLabel scoreValue = new JLabel("0");
+	private JTextField guessWord = new JTextField();
 
-	public void startController() {
+	public void start() {
+
+		// Controller
 		this.controller = new Controller();
 		this.controller.connect(ADDRESS, PORT, new OutputView());
-	}
 
-	public void startView() {
+		// View
 		this.initialize();
 	}
 
@@ -67,7 +69,6 @@ public class Screen {
 		JPanel guess = new JPanel();
 		send.add(guess);
 
-		JTextField guessWord = new JTextField();
 		guessWord.setColumns(26);
 		guess.add(guessWord);
 
@@ -76,19 +77,7 @@ public class Screen {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				String proposition = guessWord.getText();
-				if (proposition.length() != 1 && proposition.length() != currentWord.getText().length() / 3) {
-					JOptionPane error = new JOptionPane();
-					error.showMessageDialog(null, "The guess must be a letter or the entire word", "Wrong guess",
-							JOptionPane.ERROR_MESSAGE);
-					guessWord.setText("");
-					return;
-				}
-				guessWord.setText("");
-				if (proposition.length() == 1) {
-					controller.sendMessage("LETTER " + proposition);
-				} else {
-					controller.sendMessage("WORD " + proposition);
-				}
+				guess(proposition);
 			}
 		});
 		guess.add(guessButton);
@@ -100,7 +89,7 @@ public class Screen {
 		start.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				controller.sendMessage("START");
+				controller.start();
 			}
 		});
 		buttons.add(start);
@@ -149,120 +138,205 @@ public class Screen {
 		this.frame.setVisible(true);
 	}
 
-	private void setWord(String newWord) {
-		this.currentWord.setText(newWord);
+	private void setGuess(String newGuess) {
+		this.guessWord.setText(newGuess);
 	}
 
-	private void setScore(int newScore) {
-		this.scoreValue.setText(Integer.toString(newScore));
-	}
-
-	private void setNumberOfRemainingFailedAttempts(int newNumber) {
-		this.failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
-	}
-
-	private void setLetter(char letter, int position) {
-		StringBuilder newWord = new StringBuilder(currentWord.getText());
-		newWord.setCharAt(1 + 3 * position, letter);
-		this.currentWord.setText(newWord.toString());
-	}
-
-	private void welcome(Message message) {
-		int wordSize = Integer.parseInt(message.messageBody.get(0));
-		this.setNumberOfRemainingFailedAttempts(wordSize);
-		String wordPrepared = "";
-		for (int i = 0; i < wordSize; i++) {
-			wordPrepared = wordPrepared.concat(" _ ");
+	private void guess(String proposition) {
+		if (proposition.length() != 1 && proposition.length() != currentWord.getText().length() / 3) { // Dirty
+																										// size
+																										// of
+																										// the
+																										// word
+			JOptionPane error = new JOptionPane();
+			error.showMessageDialog(null, "The guess must be a letter or the entire word", "Wrong guess",
+					JOptionPane.ERROR_MESSAGE);
+			this.setGuess("");
+			return;
 		}
-		this.setWord(wordPrepared);
-	}
-
-	private void defeat(Message message) {
-		String finalWord = message.messageBody.get(0);
-		int score = Integer.parseInt(message.messageBody.get(1));
-		String wordPrepared = "";
-		for (int i = 0; i < finalWord.length(); i++) {
-			wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+		this.setGuess("");
+		if (proposition.length() == 1) {
+			sendMessage(MessageType.LETTER, proposition);
+		} else {
+			sendMessage(MessageType.WORD, proposition);
 		}
-		this.setWord(wordPrepared);
-		this.setNumberOfRemainingFailedAttempts(-1);
-		this.setScore(score);
 	}
 
-	private void victory(Message message) {
-		String finalWord = message.messageBody.get(0);
-		int score = Integer.parseInt(message.messageBody.get(1));
-		String wordPrepared = "";
-		for (int i = 0; i < finalWord.length(); i++) {
-			wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+	private void sendMessage(String... args) {
+		StringBuilder builder = new StringBuilder();
+		for (String arg : args) {
+			builder.append(arg);
+			builder.append(MessageType.DELIMITER);
 		}
-		this.setWord(wordPrepared);
-		this.setNumberOfRemainingFailedAttempts(-1);
-		this.setScore(score);
-	}
-
-	private void attempt(Message message) {
-		int newScore = Integer.parseInt(message.messageBody.get(0));
-		this.setNumberOfRemainingFailedAttempts(newScore);
-	}
-
-	private void find(Message message) {
-		char letter = message.messageBody.get(0).charAt(0);
-		int position = Integer.parseInt(message.messageBody.get(1));
-		this.setLetter(letter, position);
-	}
-
-	private void errorLetter() {
-		JOptionPane error = new JOptionPane();
-		error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
-				JOptionPane.ERROR_MESSAGE);
+		builder.setLength(builder.length() - 1);
+		this.controller.sendMessage(builder.toString());
 	}
 
 	private class OutputView implements OutputHandler {
 
+		private void setWord(String newWord) {
+			currentWord.setText(newWord);
+		}
+
+		private void setScore(int newScore) {
+			scoreValue.setText(Integer.toString(newScore));
+		}
+
+		private void setNumberOfRemainingFailedAttempts(int newNumber) {
+			failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
+		}
+
+		private void setLetter(char letter, int position) {
+			StringBuilder newWord = new StringBuilder(currentWord.getText());
+			newWord.setCharAt(1 + 3 * position, letter);
+			currentWord.setText(newWord.toString());
+		}
+
+		private void welcome(Message message) {
+			if (message.getMessageBody().size() != 1) {
+				throw new MessageException("Invalid WELCOME message sent by the server:" + message);
+			}
+			int wordSize;
+			try {
+				wordSize = Integer.parseInt(message.getMessageBody().get(0));
+			} catch (NumberFormatException e) {
+				throw new MessageException(
+						"The size of the word sent by the server is invalid (not an integer):" + message);
+			}
+			setNumberOfRemainingFailedAttempts(wordSize);
+			String wordPrepared = "";
+			for (int i = 0; i < wordSize; i++) {
+				wordPrepared = wordPrepared.concat(" _ ");
+			}
+			setWord(wordPrepared);
+		}
+
+		private void defeat(Message message) {
+			if (message.getMessageBody().size() != 2) {
+				throw new MessageException("Invalid DEFEAT message sent by the server:" + message);
+			}
+			String finalWord = message.getMessageBody().get(0); // Size of the
+																// word
+			// has to be check
+			int score;
+			try {
+				score = Integer.parseInt(message.getMessageBody().get(1));
+			} catch (NumberFormatException e) {
+				throw new MessageException("Invalid score sent by the server (not an integer):" + message);
+			}
+			String wordPrepared = "";
+			for (int i = 0; i < finalWord.length(); i++) {
+				wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+			}
+			setWord(wordPrepared);
+			setNumberOfRemainingFailedAttempts(-1);
+			setScore(score);
+		}
+
+		private void victory(Message message) {
+			if (message.getMessageBody().size() != 2) {
+				throw new MessageException("Invalid VICTORY message sent by the server:" + message);
+			}
+			String finalWord = message.getMessageBody().get(0); // Size of the
+																// word
+			// has to be check
+			int score;
+			try {
+				score = Integer.parseInt(message.getMessageBody().get(1));
+			} catch (NumberFormatException e) {
+				throw new MessageException("Invalid score sent by the server (not an integer):" + message);
+			}
+			String wordPrepared = "";
+			for (int i = 0; i < finalWord.length(); i++) {
+				wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+			}
+			setWord(wordPrepared);
+			setNumberOfRemainingFailedAttempts(-1);
+			setScore(score);
+		}
+
+		private void attempt(Message message) {
+			if (message.getMessageBody().size() != 1) {
+				throw new MessageException("Invalid ATTEMPT message sent by the server:" + message);
+			}
+			int newScore;
+			try {
+				newScore = Integer.parseInt(message.getMessageBody().get(0));
+			} catch (NumberFormatException e) {
+				throw new MessageException("Invalid number of remaining failed attempts sent by the server:" + message);
+			}
+			setNumberOfRemainingFailedAttempts(newScore);
+		}
+
+		private void find(Message message) {
+			if (message.getMessageBody().size() != 2) {
+				throw new MessageException(
+						"Invalid FIND message sent by the server (invalid number of arguments):" + message);
+			}
+			if (message.getMessageBody().get(0).length() != 1) {
+				throw new MessageException("Invalid letter sent by the server (not 1 character):" + message);
+			}
+			char letter = message.getMessageBody().get(0).charAt(0);
+			if (!Character.isLetter(letter)) {
+				throw new MessageException("Invalid letter sent by the server (not a letter)" + message);
+			}
+			int position;
+			try {
+				position = Integer.parseInt(message.getMessageBody().get(1)); // Check
+																				// position
+																				// in
+																				// boundaries
+			} catch (NumberFormatException e) {
+				throw new MessageException("Invalid position sent by the server (not an integer):" + message);
+			}
+			setLetter(letter, position);
+		}
+
+		private void errorLetter(Message message) {
+			if (!message.getMessageBody().isEmpty()) {
+				throw new MessageException("Invalid ERRORLETTER message sent by the server: " + message);
+			}
+			JOptionPane error = new JOptionPane();
+			error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
+					JOptionPane.ERROR_MESSAGE);
+		}
+
+		private void errorTurn(Message message) {
+			if (!message.getMessageBody().isEmpty()) {
+				throw new MessageException("Invalid ERRORTURN message sent by the server: " + message);
+			}
+			JOptionPane error = new JOptionPane();
+			error.showMessageDialog(null, "You need to start a new turn before guessing", "Guess not possible",
+					JOptionPane.ERROR_MESSAGE);
+		}
+
 		@Override
 		public void handleMessage(String messageReceived) {
 			Message message = new Message(messageReceived);
-			switch (message.messageType) {
+			switch (message.getMessageType()) {
 			case MessageType.WELCOME:
-				welcome(message);
+				this.welcome(message);
 				break;
 			case MessageType.ATTEMPT:
-				attempt(message);
+				this.attempt(message);
 				break;
 			case MessageType.DEFEAT:
-				defeat(message);
+				this.defeat(message);
 				break;
 			case MessageType.VICTORY:
-				victory(message);
+				this.victory(message);
 				break;
 			case MessageType.FIND:
-				find(message);
+				this.find(message);
 				break;
 			case MessageType.ERRORLETTER:
-				errorLetter();
+				this.errorLetter(message);
+				break;
+			case MessageType.ERRORTURN:
+				this.errorTurn(message);
 				break;
 			default:
 				throw new MessageException("Invalid message received: " + messageReceived);
-			}
-		}
-	}
-
-	private static class Message {
-
-		private String messageType;
-		private List<String> messageBody;
-
-		private Message(String message) {
-			this.parse(message);
-		}
-
-		private void parse(String message) {
-			String[] split = message.split(MessageType.DELIMITER);
-			this.messageType = split[0];
-			this.messageBody = new ArrayList<>();
-			for (int i = 1; i < split.length; i++) {
-				this.messageBody.add(split[i]);
 			}
 		}
 	}

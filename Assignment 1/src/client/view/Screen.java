@@ -169,22 +169,26 @@ public class Screen {
 
 	private class OutputManager implements OutputHandler {
 
+		private void setLetter(char letter, int position) {
+			StringBuilder newWord = new StringBuilder(currentWord.getText());
+			newWord.setCharAt(1 + 3 * position, letter);
+			currentWord.setText(newWord.toString());
+		}
+
 		private void setWord(String newWord) {
 			currentWord.setText(newWord);
 		}
 
 		private void setScore(int newScore) {
+			int oldScore = Integer.parseInt(scoreValue.getText());
+			if (!(newScore == oldScore - 1 || newScore == oldScore + 1)) {
+				throw new MessageException("Invalid score received: must be the old score +/- 1");
+			}
 			scoreValue.setText(Integer.toString(newScore));
 		}
 
 		private void setNumberOfRemainingFailedAttempts(int newNumber) {
 			failedAttemptsRemainingNumber.setText(Integer.toString(newNumber));
-		}
-
-		private void setLetter(char letter, int position) {
-			StringBuilder newWord = new StringBuilder(currentWord.getText());
-			newWord.setCharAt(1 + 3 * position, letter);
-			currentWord.setText(newWord.toString());
 		}
 
 		private void welcome(Message message) {
@@ -217,7 +221,7 @@ public class Screen {
 			try {
 				score = Integer.parseInt(message.getMessageBody().get(1));
 			} catch (NumberFormatException e) {
-				throw new MessageException("Invalid score sent by the server (not an integer):" + message);
+				throw new MessageException("Invalid score received (not an integer):" + message);
 			}
 			StringBuilder wordPrepared = new StringBuilder();
 			for (int i = 0; i < finalWord.length(); i++) {
@@ -240,7 +244,7 @@ public class Screen {
 			try {
 				score = Integer.parseInt(message.getMessageBody().get(1));
 			} catch (NumberFormatException e) {
-				throw new MessageException("Invalid score sent by the server (not an integer):" + message);
+				throw new MessageException("Invalid score received (not an integer):" + message);
 			}
 			StringBuilder wordPrepared = new StringBuilder();
 			for (int i = 0; i < finalWord.length(); i++) {
@@ -259,7 +263,8 @@ public class Screen {
 			try {
 				newScore = Integer.parseInt(message.getMessageBody().get(0));
 			} catch (NumberFormatException e) {
-				throw new MessageException("Invalid number of remaining failed attempts sent by the server:" + message);
+				throw new MessageException(
+						"Invalid number of remaining failed attempts received (not an integer):" + message);
 			}
 			this.setNumberOfRemainingFailedAttempts(newScore);
 		}
@@ -269,20 +274,20 @@ public class Screen {
 				throw new MessageException("Invalid FIND message received (2 arguments needed):" + message);
 			}
 			if (message.getMessageBody().get(0).length() != 1) {
-				throw new MessageException("Invalid letter sent by the server (not 1 character):" + message);
+				throw new MessageException("Invalid letter received (not 1 character):" + message);
 			}
 			char letter = message.getMessageBody().get(0).charAt(0);
 			if (!Character.isLetter(letter)) {
-				throw new MessageException("Invalid letter sent by the server (not a letter)" + message);
+				throw new MessageException("Invalid letter received (not a letter)" + message);
 			}
 			int position;
 			try {
 				position = Integer.parseInt(message.getMessageBody().get(1));
 			} catch (NumberFormatException e) {
-				throw new MessageException("Invalid position sent by the server (not an integer):" + message);
+				throw new MessageException("Invalid position received (not an integer):" + message);
 			}
 			if (!(position > 0 && position < currentWord.getText().length() / 3)) {
-				throw new MessageException("Invalid position sent by the server (not in boundaries):" + message);
+				throw new MessageException("Invalid position received (not in boundaries):" + message);
 			}
 			this.setLetter(letter, position);
 		}

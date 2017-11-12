@@ -219,7 +219,7 @@ public class ClientHandler implements Runnable {
 		this.wordSize = chosenWord.length();
 		this.remainingFailedAttempts = wordSize;
 		this.numberOfLettersFound = 0;
-		this.sendMessage(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.chosenWord.length())));
+		this.sendMessage(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.wordSize)));
 		this.lettersProposed.clear();
 		this.turnLaunched = true;
 	}

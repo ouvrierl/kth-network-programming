@@ -20,9 +20,9 @@ import javax.swing.SwingConstants;
 
 import client.controller.Controller;
 import client.net.OutputHandler;
-import exception.MessageException;
-import message.Message;
-import message.MessageType;
+import common.exception.MessageException;
+import common.message.Message;
+import common.message.MessageType;
 
 public class Screen {
 
@@ -279,7 +279,7 @@ public class Screen {
 			} catch (NumberFormatException e) {
 				throw new MessageException("Invalid position received (not an integer):" + message);
 			}
-			if (!(position > 0 && position < currentWord.getText().length() / 3)) {
+			if (!(position >= 0 && position < currentWord.getText().length() / 3)) {
 				throw new MessageException("Invalid position received (not in boundaries):" + message);
 			}
 			this.setLetter(letter, position);

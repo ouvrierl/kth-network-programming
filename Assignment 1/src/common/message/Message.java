@@ -1,4 +1,4 @@
-package message;
+package common.message;
 
 import java.util.ArrayList;
 import java.util.List;

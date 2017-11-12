@@ -1,4 +1,4 @@
-package exception;
+package common.exception;
 
 public class IOException extends RuntimeException {
 

@@ -10,11 +10,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import common.ConnectionException;
-import common.IOException;
-import common.Message;
-import common.MessageException;
-import common.MessageType;
+import exception.ConnectionException;
+import exception.IOException;
+import exception.MessageException;
+import message.Message;
+import message.MessageType;
 
 public class ClientHandler implements Runnable {
 

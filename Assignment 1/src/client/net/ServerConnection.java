@@ -6,10 +6,10 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import common.ConnectionException;
-import common.Message;
-import common.MessageException;
-import common.MessageType;
+import exception.ConnectionException;
+import exception.MessageException;
+import message.Message;
+import message.MessageType;
 
 public class ServerConnection {
 	private Socket socket;

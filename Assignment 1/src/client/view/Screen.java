@@ -20,9 +20,9 @@ import javax.swing.SwingConstants;
 
 import client.controller.Controller;
 import client.net.OutputHandler;
-import common.Message;
-import common.MessageException;
-import common.MessageType;
+import exception.MessageException;
+import message.Message;
+import message.MessageType;
 
 public class Screen {
 

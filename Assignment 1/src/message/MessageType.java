@@ -1,4 +1,4 @@
-package common;
+package message;
 
 public class MessageType {
 

@@ -3,7 +3,7 @@ package server.net;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import common.ConnectionException;
+import exception.ConnectionException;
 
 public class HangmanServer {
 

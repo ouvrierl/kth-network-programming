@@ -6,9 +6,11 @@ import java.util.List;
 public class Message {
 	private String messageType;
 	private List<String> messageBody;
+	private String entireMessage;
 
 	public Message(String message) {
 		this.parse(message);
+		this.entireMessage = message;
 	}
 
 	public String getMessageType() {
@@ -30,11 +32,6 @@ public class Message {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(messageType);
-		for (String arg : messageBody) {
-			builder.append(" " + arg);
-		}
-		return builder.toString();
+		return this.entireMessage;
 	}
 }

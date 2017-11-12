@@ -30,6 +30,7 @@ public class ClientHandler implements Runnable {
 	private int score = 0;
 	private List<Character> lettersProposed = new ArrayList<>();
 	private boolean turnLaunch = false;
+	private int wordSize = 0;
 
 	public ClientHandler(Socket clientSocket) {
 		this.clientSocket = clientSocket;
@@ -55,16 +56,16 @@ public class ClientHandler implements Runnable {
 					this.quit(message);
 					break;
 				case MessageType.LETTER:
-					manageLetter(message);
+					this.manageLetter(message);
 					break;
 				case MessageType.WORD:
-					manageWord(message);
+					this.manageWord(message);
 					break;
 				default:
 					throw new MessageException("Invalid message received: " + messageReceived);
 				}
 			} catch (Exception e) {
-				quit();
+				this.quit();
 				throw new MessageException(e.getMessage());
 			}
 		}
@@ -89,27 +90,30 @@ public class ClientHandler implements Runnable {
 				i++;
 			}
 		} catch (Exception e) {
-			this.quit();
 			throw new IOException("Error in reading words file");
 		}
 		return word.toLowerCase();
 	}
 
 	private void letterAlreadyProposed() {
-		sendMessage(MessageType.ERRORLETTER);
+		this.sendMessage(MessageType.ERRORLETTER);
+	}
+
+	private void turnNotBegan() {
+		this.sendMessage(MessageType.ERRORTURN);
 	}
 
 	private void manageWord(Message message) {
-		if (!turnLaunch) {
-			turnNotBegan();
+		if (!this.turnLaunch) {
+			this.turnNotBegan();
 		} else {
 			if (message.getMessageBody().size() != 1) {
 				throw new MessageException("Invalid WORD message received (invalid number of arguments): " + message);
 			}
-			if (message.getMessageBody().get(0).length() != chosenWord.length()) {
+			String wordProposed = message.getMessageBody().get(0).toLowerCase();
+			if (wordProposed.length() != this.wordSize) {
 				throw new MessageException("Invalid WORD message received (word of invalid length): " + message);
 			}
-			String wordProposed = message.getMessageBody().get(0).toLowerCase();
 			if (wordProposed.equals(this.chosenWord)) {
 				this.victory();
 			} else {
@@ -121,36 +125,29 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	private void turnNotBegan() {
-		this.sendMessage(MessageType.ERRORTURN);
-	}
-
 	private void manageLetter(Message message) {
-		if (!turnLaunch) {
-			turnNotBegan();
+		if (!this.turnLaunch) {
+			this.turnNotBegan();
 		} else {
 			if (message.getMessageBody().size() != 1) {
-				this.quit();
 				throw new MessageException("Invalid LETTER message received (invalid number of arguments): " + message);
 			}
 			if (message.getMessageBody().get(0).length() != 1) {
-				this.quit();
 				throw new MessageException("Invalid LETTER message received (one letter needed): " + message);
 			}
 			char letter = message.getMessageBody().get(0).toLowerCase().charAt(0);
 			if (!Character.isLetter(letter)) {
-				this.quit();
 				throw new MessageException("Invalid LETTER message received (not a letter): " + message);
 			}
 			if (this.lettersProposed.contains(letter)) {
-				letterAlreadyProposed();
+				this.letterAlreadyProposed();
 			} else {
 				this.lettersProposed.add(letter);
 				if (this.chosenWord.contains(Character.toString(letter))) {
 					for (int i = 0; i < chosenWord.length(); i++) {
 						if (this.chosenWord.charAt(i) == letter) {
 							this.numberOfLettersFound++;
-							this.sendMessage(MessageType.FIND, Character.toString(Character.toLowerCase(letter)),
+							this.sendMessageToPrepare(MessageType.FIND, Character.toString(letter),
 									Integer.toString(i));
 						}
 					}
@@ -183,26 +180,31 @@ public class ClientHandler implements Runnable {
 		this.connected = false;
 	}
 
-	private void sendMessage(String... args) {
-		StringBuilder builder = new StringBuilder();
+	private void sendMessageToPrepare(String... args) {
+		StringBuilder message = new StringBuilder();
 		for (String arg : args) {
-			builder.append(arg);
-			builder.append(MessageType.DELIMITER);
+			message.append(arg);
+			message.append(MessageType.DELIMITER);
 		}
-		builder.setLength(builder.length() - 1);
-		this.output.println(builder.toString());
+		message.setLength(message.length() - 1); // Last useless space is
+													// removed
+		this.sendMessage(message.toString());
+	}
+
+	private void sendMessage(String message) {
+		this.output.println(message);
 		this.output.flush();
 	}
 
 	private void defeat() {
 		this.score--;
-		this.sendMessage(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score));
+		this.sendMessageToPrepare(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score));
 		this.reset();
 	}
 
 	private void victory() {
 		this.score++;
-		this.sendMessage(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score));
+		this.sendMessageToPrepare(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score));
 		this.reset();
 	}
 
@@ -210,25 +212,26 @@ public class ClientHandler implements Runnable {
 		this.chosenWord = "";
 		this.remainingFailedAttempts = Integer.MAX_VALUE;
 		this.numberOfLettersFound = Integer.MAX_VALUE;
+		this.wordSize = Integer.MAX_VALUE;
 		this.turnLaunch = false;
 	}
 
 	private void start(Message message) {
 		if (!message.getMessageBody().isEmpty()) {
-			this.quit();
 			throw new MessageException("Invalid START message received (no argument needed):" + message);
 		}
 		this.chosenWord = randomWord();
-		this.remainingFailedAttempts = chosenWord.length();
+		this.wordSize = chosenWord.length();
+		this.remainingFailedAttempts = wordSize;
 		this.numberOfLettersFound = 0;
-		this.sendMessage(MessageType.WELCOME, Integer.toString(this.chosenWord.length()));
+		this.sendMessageToPrepare(MessageType.WELCOME, Integer.toString(this.chosenWord.length()));
 		this.lettersProposed.clear();
 		this.turnLaunch = true;
 	}
 
 	private void failedAttempt() {
 		this.remainingFailedAttempts--;
-		this.sendMessage(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts));
+		this.sendMessageToPrepare(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts));
 	}
 
 }

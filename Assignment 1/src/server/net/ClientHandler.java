@@ -158,7 +158,7 @@ public class ClientHandler implements Runnable {
 					} else {
 						this.failedAttempt();
 					}
-					if (this.numberOfLettersFound == this.chosenWord.length()) {
+					if (this.numberOfLettersFound == this.wordSize) {
 						this.victory();
 					}
 					if (this.remainingFailedAttempts == 0) {

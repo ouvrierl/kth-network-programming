@@ -99,6 +99,10 @@ public class ClientHandler implements Runnable {
 		this.sendMessage(MessageType.ERRORLETTER);
 	}
 
+	private void notALetter() {
+		this.sendMessage(MessageType.NOTALETTER);
+	}
+
 	private void turnNotBegan() {
 		this.sendMessage(MessageType.ERRORTURN);
 	}
@@ -137,31 +141,33 @@ public class ClientHandler implements Runnable {
 			}
 			char letter = message.getMessageBody().get(0).toLowerCase().charAt(0);
 			if (!Character.isLetter(letter)) {
-				throw new MessageException("Invalid LETTER message received (not a letter): " + message);
-			}
-			if (this.lettersProposed.contains(letter)) {
-				this.letterAlreadyProposed();
+				this.notALetter();
 			} else {
-				this.lettersProposed.add(letter);
-				if (this.chosenWord.contains(Character.toString(letter))) {
-					for (int i = 0; i < chosenWord.length(); i++) {
-						if (this.chosenWord.charAt(i) == letter) {
-							this.numberOfLettersFound++;
-							this.sendMessageToPrepare(MessageType.FIND, Character.toString(letter),
-									Integer.toString(i));
-						}
-					}
+				if (this.lettersProposed.contains(letter)) {
+					this.letterAlreadyProposed();
 				} else {
-					this.failedAttempt();
-				}
-				if (this.numberOfLettersFound == this.chosenWord.length()) {
-					this.victory();
-				}
-				if (this.remainingFailedAttempts == 0) {
-					this.defeat();
+					this.lettersProposed.add(letter);
+					if (this.chosenWord.contains(Character.toString(letter))) {
+						for (int i = 0; i < chosenWord.length(); i++) {
+							if (this.chosenWord.charAt(i) == letter) {
+								this.numberOfLettersFound++;
+								this.sendMessageToPrepare(MessageType.FIND, Character.toString(letter),
+										Integer.toString(i));
+							}
+						}
+					} else {
+						this.failedAttempt();
+					}
+					if (this.numberOfLettersFound == this.chosenWord.length()) {
+						this.victory();
+					}
+					if (this.remainingFailedAttempts == 0) {
+						this.defeat();
+					}
 				}
 			}
 		}
+
 	}
 
 	private void quit(Message message) {
@@ -187,7 +193,7 @@ public class ClientHandler implements Runnable {
 			message.append(MessageType.DELIMITER);
 		}
 		message.setLength(message.length() - 1); // Last useless space is
-													// removed
+		// removed
 		this.sendMessage(message.toString());
 	}
 

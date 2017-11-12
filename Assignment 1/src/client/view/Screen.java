@@ -29,18 +29,18 @@ public class Screen {
 	private static final int PORT = 8080;
 	private static final String ADDRESS = "localhost";
 
-	private JFrame frame;
 	private Controller controller;
+
+	private JFrame frame;
 	private JLabel currentWord = new JLabel("");
 	private JLabel failedAttemptsRemainingNumber = new JLabel("-1");
 	private JLabel scoreValue = new JLabel("0");
-	private JTextField guessWord = new JTextField();
 
 	public void start() {
 
 		// Controller
 		this.controller = new Controller();
-		this.controller.connect(ADDRESS, PORT, new OutputView());
+		this.controller.connect(ADDRESS, PORT, new OutputManager());
 
 		// View
 		this.initialize();
@@ -69,6 +69,7 @@ public class Screen {
 		JPanel guess = new JPanel();
 		send.add(guess);
 
+		JTextField guessWord = new JTextField();
 		guessWord.setColumns(26);
 		guess.add(guessWord);
 
@@ -78,6 +79,7 @@ public class Screen {
 			public void mouseReleased(MouseEvent e) {
 				String proposition = guessWord.getText();
 				guess(proposition);
+				guessWord.setText("");
 			}
 		});
 		guess.add(guessButton);
@@ -138,41 +140,34 @@ public class Screen {
 		this.frame.setVisible(true);
 	}
 
-	private void setGuess(String newGuess) {
-		this.guessWord.setText(newGuess);
-	}
-
 	private void guess(String proposition) {
-		if (proposition.length() != 1 && proposition.length() != currentWord.getText().length() / 3) { // Dirty
-																										// size
-																										// of
-																										// the
-																										// word
+		if (proposition.length() != 1 && proposition.length() != currentWord.getText().length() / 3) {
 			JOptionPane error = new JOptionPane();
 			error.showMessageDialog(null, "The guess must be a letter or the entire word", "Wrong guess",
 					JOptionPane.ERROR_MESSAGE);
-			this.setGuess("");
-			return;
-		}
-		this.setGuess("");
-		if (proposition.length() == 1) {
-			sendMessage(MessageType.LETTER, proposition);
+
 		} else {
-			sendMessage(MessageType.WORD, proposition);
+			if (proposition.length() == 1) {
+				this.sendMessageToPrepare(MessageType.LETTER, proposition);
+			} else {
+				this.sendMessageToPrepare(MessageType.WORD, proposition);
+			}
 		}
+
 	}
 
-	private void sendMessage(String... args) {
+	private void sendMessageToPrepare(String... args) {
 		StringBuilder builder = new StringBuilder();
 		for (String arg : args) {
 			builder.append(arg);
 			builder.append(MessageType.DELIMITER);
 		}
-		builder.setLength(builder.length() - 1);
+		builder.setLength(builder.length() - 1); // Last useless space is
+													// removed
 		this.controller.sendMessage(builder.toString());
 	}
 
-	private class OutputView implements OutputHandler {
+	private class OutputManager implements OutputHandler {
 
 		private void setWord(String newWord) {
 			currentWord.setText(newWord);
@@ -194,70 +189,71 @@ public class Screen {
 
 		private void welcome(Message message) {
 			if (message.getMessageBody().size() != 1) {
-				throw new MessageException("Invalid WELCOME message sent by the server:" + message);
+				throw new MessageException("Invalid WELCOME message received (one argument needed):" + message);
 			}
 			int wordSize;
 			try {
 				wordSize = Integer.parseInt(message.getMessageBody().get(0));
 			} catch (NumberFormatException e) {
-				throw new MessageException(
-						"The size of the word sent by the server is invalid (not an integer):" + message);
+				throw new MessageException("The size of the word received is invalid (not an integer):" + message);
 			}
-			setNumberOfRemainingFailedAttempts(wordSize);
-			String wordPrepared = "";
+			this.setNumberOfRemainingFailedAttempts(wordSize);
+			StringBuilder wordPrepared = new StringBuilder();
 			for (int i = 0; i < wordSize; i++) {
-				wordPrepared = wordPrepared.concat(" _ ");
+				wordPrepared.append(" _ ");
 			}
-			setWord(wordPrepared);
+			this.setWord(wordPrepared.toString());
 		}
 
 		private void defeat(Message message) {
 			if (message.getMessageBody().size() != 2) {
-				throw new MessageException("Invalid DEFEAT message sent by the server:" + message);
+				throw new MessageException("Invalid DEFEAT message received (2 arguments needed):" + message);
 			}
-			String finalWord = message.getMessageBody().get(0); // Size of the
-																// word
-			// has to be check
+			String finalWord = message.getMessageBody().get(0);
+			if (finalWord.length() != currentWord.getText().length() / 3) {
+				throw new MessageException("Invalid final word received (wrong size):" + message);
+			}
 			int score;
 			try {
 				score = Integer.parseInt(message.getMessageBody().get(1));
 			} catch (NumberFormatException e) {
 				throw new MessageException("Invalid score sent by the server (not an integer):" + message);
 			}
-			String wordPrepared = "";
+			StringBuilder wordPrepared = new StringBuilder();
 			for (int i = 0; i < finalWord.length(); i++) {
-				wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+				wordPrepared.append(" " + finalWord.charAt(i) + " ");
 			}
-			setWord(wordPrepared);
-			setNumberOfRemainingFailedAttempts(-1);
-			setScore(score);
+			this.setWord(wordPrepared.toString());
+			this.setNumberOfRemainingFailedAttempts(-1);
+			this.setScore(score);
 		}
 
 		private void victory(Message message) {
 			if (message.getMessageBody().size() != 2) {
-				throw new MessageException("Invalid VICTORY message sent by the server:" + message);
+				throw new MessageException("Invalid VICTORY message received (2 arguments needed):" + message);
 			}
-			String finalWord = message.getMessageBody().get(0); // Size of the
-																// word
-			// has to be check
+			String finalWord = message.getMessageBody().get(0);
+			if (finalWord.length() != currentWord.getText().length() / 3) {
+				throw new MessageException("Invalid final word received (wrong size):" + message);
+			}
 			int score;
 			try {
 				score = Integer.parseInt(message.getMessageBody().get(1));
 			} catch (NumberFormatException e) {
 				throw new MessageException("Invalid score sent by the server (not an integer):" + message);
 			}
-			String wordPrepared = "";
+			StringBuilder wordPrepared = new StringBuilder();
 			for (int i = 0; i < finalWord.length(); i++) {
-				wordPrepared = wordPrepared.concat(" " + finalWord.charAt(i) + " ");
+				wordPrepared.append(" " + finalWord.charAt(i) + " ");
 			}
-			setWord(wordPrepared);
-			setNumberOfRemainingFailedAttempts(-1);
-			setScore(score);
+			this.setWord(wordPrepared.toString());
+			this.setNumberOfRemainingFailedAttempts(-1);
+			this.setScore(score);
 		}
 
 		private void attempt(Message message) {
 			if (message.getMessageBody().size() != 1) {
-				throw new MessageException("Invalid ATTEMPT message sent by the server:" + message);
+				throw new MessageException("Invalid ATTEMPT received (1 argument needed):" + message);
 			}
 			int newScore;
 			try {
@@ -265,13 +261,12 @@ public class Screen {
 			} catch (NumberFormatException e) {
 				throw new MessageException("Invalid number of remaining failed attempts sent by the server:" + message);
 			}
-			setNumberOfRemainingFailedAttempts(newScore);
+			this.setNumberOfRemainingFailedAttempts(newScore);
 		}
 
 		private void find(Message message) {
 			if (message.getMessageBody().size() != 2) {
-				throw new MessageException(
-						"Invalid FIND message sent by the server (invalid number of arguments):" + message);
+				throw new MessageException("Invalid FIND message received (2 arguments needed):" + message);
 			}
 			if (message.getMessageBody().get(0).length() != 1) {
 				throw new MessageException("Invalid letter sent by the server (not 1 character):" + message);
@@ -282,19 +277,19 @@ public class Screen {
 			}
 			int position;
 			try {
-				position = Integer.parseInt(message.getMessageBody().get(1)); // Check
-																				// position
-																				// in
-																				// boundaries
+				position = Integer.parseInt(message.getMessageBody().get(1));
 			} catch (NumberFormatException e) {
 				throw new MessageException("Invalid position sent by the server (not an integer):" + message);
 			}
-			setLetter(letter, position);
+			if (!(position > 0 && position < currentWord.getText().length() / 3)) {
+				throw new MessageException("Invalid position sent by the server (not in boundaries):" + message);
+			}
+			this.setLetter(letter, position);
 		}
 
 		private void errorLetter(Message message) {
 			if (!message.getMessageBody().isEmpty()) {
-				throw new MessageException("Invalid ERRORLETTER message sent by the server: " + message);
+				throw new MessageException("Invalid ERRORLETTER received (no argument needed): " + message);
 			}
 			JOptionPane error = new JOptionPane();
 			error.showMessageDialog(null, "The letter has already been proposed", "Wrong letter",
@@ -303,11 +298,19 @@ public class Screen {
 
 		private void errorTurn(Message message) {
 			if (!message.getMessageBody().isEmpty()) {
-				throw new MessageException("Invalid ERRORTURN message sent by the server: " + message);
+				throw new MessageException("Invalid ERRORTURN received (no argument needed): " + message);
 			}
 			JOptionPane error = new JOptionPane();
-			error.showMessageDialog(null, "You need to start a new turn before guessing", "Guess not possible",
+			error.showMessageDialog(null, "Start a new turn before guessing", "Guess not possible",
 					JOptionPane.ERROR_MESSAGE);
+		}
+
+		private void notALetter(Message message) {
+			if (!message.getMessageBody().isEmpty()) {
+				throw new MessageException("Invalid ERRORTURN received (no argument needed): " + message);
+			}
+			JOptionPane error = new JOptionPane();
+			error.showMessageDialog(null, "The guess must be a letter", "Not a letter", JOptionPane.ERROR_MESSAGE);
 		}
 
 		@Override
@@ -335,8 +338,11 @@ public class Screen {
 			case MessageType.ERRORTURN:
 				this.errorTurn(message);
 				break;
+			case MessageType.NOTALETTER:
+				this.notALetter(message);
+				break;
 			default:
-				throw new MessageException("Invalid message received: " + messageReceived);
+				throw new MessageException("Invalid message received: " + message);
 			}
 		}
 	}

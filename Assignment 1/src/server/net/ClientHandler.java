@@ -25,12 +25,12 @@ public class ClientHandler implements Runnable {
 	private PrintWriter output;
 	private boolean connected = true;
 	private String chosenWord = "";
+	private int wordSize = 0;
 	private int remainingFailedAttempts = 0;
 	private int numberOfLettersFound = 0;
 	private int score = 0;
 	private List<Character> lettersProposed = new ArrayList<>();
-	private boolean turnLaunch = false;
-	private int wordSize = 0;
+	private boolean turnLaunched = false;
 
 	public ClientHandler(Socket clientSocket) {
 		this.clientSocket = clientSocket;
@@ -62,7 +62,7 @@ public class ClientHandler implements Runnable {
 					this.manageWord(message);
 					break;
 				default:
-					throw new MessageException("Invalid message received: " + messageReceived);
+					throw new MessageException("Invalid message received: " + message);
 				}
 			} catch (Exception e) {
 				this.quit();
@@ -108,7 +108,7 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void manageWord(Message message) {
-		if (!this.turnLaunch) {
+		if (!this.turnLaunched) {
 			this.turnNotBegan();
 		} else {
 			if (message.getMessageBody().size() != 1) {
@@ -130,7 +130,7 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void manageLetter(Message message) {
-		if (!this.turnLaunch) {
+		if (!this.turnLaunched) {
 			this.turnNotBegan();
 		} else {
 			if (message.getMessageBody().size() != 1) {
@@ -151,8 +151,8 @@ public class ClientHandler implements Runnable {
 						for (int i = 0; i < chosenWord.length(); i++) {
 							if (this.chosenWord.charAt(i) == letter) {
 								this.numberOfLettersFound++;
-								this.sendMessageToPrepare(MessageType.FIND, Character.toString(letter),
-										Integer.toString(i));
+								this.sendMessage(Message.prepareMessage(MessageType.FIND, Character.toString(letter),
+										Integer.toString(i)));
 							}
 						}
 					} else {
@@ -186,17 +186,6 @@ public class ClientHandler implements Runnable {
 		this.connected = false;
 	}
 
-	private void sendMessageToPrepare(String... args) {
-		StringBuilder message = new StringBuilder();
-		for (String arg : args) {
-			message.append(arg);
-			message.append(MessageType.DELIMITER);
-		}
-		message.setLength(message.length() - 1); // Last useless space is
-		// removed
-		this.sendMessage(message.toString());
-	}
-
 	private void sendMessage(String message) {
 		this.output.println(message);
 		this.output.flush();
@@ -204,13 +193,13 @@ public class ClientHandler implements Runnable {
 
 	private void defeat() {
 		this.score--;
-		this.sendMessageToPrepare(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score));
+		this.sendMessage(Message.prepareMessage(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score)));
 		this.reset();
 	}
 
 	private void victory() {
 		this.score++;
-		this.sendMessageToPrepare(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score));
+		this.sendMessage(Message.prepareMessage(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score)));
 		this.reset();
 	}
 
@@ -219,7 +208,7 @@ public class ClientHandler implements Runnable {
 		this.remainingFailedAttempts = Integer.MAX_VALUE;
 		this.numberOfLettersFound = Integer.MAX_VALUE;
 		this.wordSize = Integer.MAX_VALUE;
-		this.turnLaunch = false;
+		this.turnLaunched = false;
 	}
 
 	private void start(Message message) {
@@ -230,14 +219,14 @@ public class ClientHandler implements Runnable {
 		this.wordSize = chosenWord.length();
 		this.remainingFailedAttempts = wordSize;
 		this.numberOfLettersFound = 0;
-		this.sendMessageToPrepare(MessageType.WELCOME, Integer.toString(this.chosenWord.length()));
+		this.sendMessage(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.chosenWord.length())));
 		this.lettersProposed.clear();
-		this.turnLaunch = true;
+		this.turnLaunched = true;
 	}
 
 	private void failedAttempt() {
 		this.remainingFailedAttempts--;
-		this.sendMessageToPrepare(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts));
+		this.sendMessage(Message.prepareMessage(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts)));
 	}
 
 }

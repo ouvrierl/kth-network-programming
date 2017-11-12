@@ -34,4 +34,15 @@ public class Message {
 	public String toString() {
 		return this.entireMessage;
 	}
+
+	public static String prepareMessage(String... args) {
+		StringBuilder message = new StringBuilder();
+		for (String arg : args) {
+			message.append(arg);
+			message.append(MessageType.DELIMITER);
+		}
+		message.setLength(message.length() - 1); // Last useless space is
+													// removed
+		return message.toString();
+	}
 }

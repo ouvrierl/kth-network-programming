@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import common.ConnectionException;
+import common.Message;
 import common.MessageException;
 import common.MessageType;
 
@@ -29,11 +30,11 @@ public class ServerConnection {
 	}
 
 	public void start() {
-		this.sendMessage(MessageType.START);
+		this.sendMessage(Message.prepareMessage(MessageType.START));
 	}
 
 	public void disconnect() {
-		this.sendMessage(MessageType.QUIT);
+		this.sendMessage(Message.prepareMessage(MessageType.QUIT));
 		try {
 			this.socket.close();
 		} catch (Exception e) {

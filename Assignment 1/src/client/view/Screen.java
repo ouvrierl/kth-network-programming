@@ -148,23 +148,16 @@ public class Screen {
 
 		} else {
 			if (proposition.length() == 1) {
-				this.sendMessageToPrepare(MessageType.LETTER, proposition);
+				this.sendMessage(Message.prepareMessage(MessageType.LETTER, proposition));
 			} else {
-				this.sendMessageToPrepare(MessageType.WORD, proposition);
+				this.sendMessage(Message.prepareMessage(MessageType.WORD, proposition));
 			}
 		}
 
 	}
 
-	private void sendMessageToPrepare(String... args) {
-		StringBuilder builder = new StringBuilder();
-		for (String arg : args) {
-			builder.append(arg);
-			builder.append(MessageType.DELIMITER);
-		}
-		builder.setLength(builder.length() - 1); // Last useless space is
-													// removed
-		this.controller.sendMessage(builder.toString());
+	private void sendMessage(String message) {
+		this.controller.sendMessage(message);
 	}
 
 	private class OutputManager implements OutputHandler {

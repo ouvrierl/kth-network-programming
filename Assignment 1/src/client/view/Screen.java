@@ -69,7 +69,7 @@ public class Screen {
 		JPanel guess = new JPanel();
 		send.add(guess);
 
-		JTextField guessWord = new JTextField();
+		JTextField guessWord = new JTextField("");
 		guessWord.setColumns(26);
 		guess.add(guessWord);
 

@@ -43,7 +43,7 @@ public class Message {
 		}
 		message.setLength(message.length() - 1); // Last useless space is
 													// removed
-		message.append(MessageType.ENDMESSAGE);
+		// message.append(MessageType.ENDMESSAGE);
 		return message.toString();
 	}
 }

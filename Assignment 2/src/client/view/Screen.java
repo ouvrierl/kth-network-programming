@@ -7,6 +7,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -18,32 +19,49 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import client.controller.Controller;
-import client.net.OutputHandler;
+import client.net.CommunicationListener;
+import client.net.ServerConnection;
 import common.exception.MessageException;
 import common.message.Message;
 import common.message.MessageType;
 
-public class Screen {
+public class Screen implements Runnable {
 
 	private static final int PORT = 8080;
 	private static final String ADDRESS = "localhost";
 
-	private Controller controller;
+	private ServerConnection server;
 
 	private JFrame frame;
 	private JLabel currentWord = new JLabel("");
 	private JLabel failedAttemptsRemainingNumber = new JLabel("-1");
 	private JLabel scoreValue = new JLabel("0");
+	private boolean receivingMessages = false;
 
 	public void start() {
 
-		// Controller
-		this.controller = new Controller();
-		this.controller.connect(ADDRESS, PORT, new OutputManager());
+		if (this.receivingMessages) {
+			return;
+		}
+		this.receivingMessages = true;
+
+		// Server
+		this.server = new ServerConnection();
 
 		// View
+		// new Thread(this).start();
 		this.initialize();
+
+		// Automatic connection
+		this.server.connect(ADDRESS, PORT, new Listener());
+
+	}
+
+	@Override
+	public void run() {
+		while (this.receivingMessages) {
+			// Do something?
+		}
 	}
 
 	private void initialize() {
@@ -51,7 +69,12 @@ public class Screen {
 		this.frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				controller.disconnect();
+				try {
+					receivingMessages = false;
+					server.disconnect();
+				} catch (IOException e1) {
+					throw new common.exception.ConnectionException("Error while deconnecting client from server");
+				}
 			}
 		});
 		this.frame.setBounds(100, 100, 450, 300);
@@ -91,7 +114,7 @@ public class Screen {
 		start.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				controller.start();
+				server.startGame();
 			}
 		});
 		buttons.add(start);
@@ -100,7 +123,12 @@ public class Screen {
 		stop.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				controller.disconnect();
+				try {
+					receivingMessages = false;
+					server.disconnect();
+				} catch (IOException e1) {
+					throw new common.exception.ConnectionException("Error while deconnecting client from server");
+				}
 				frame.dispose();
 			}
 		});
@@ -157,10 +185,10 @@ public class Screen {
 	}
 
 	private void sendMessage(String message) {
-		this.controller.sendMessage(message);
+		this.server.sendMessage(message);
 	}
 
-	private class OutputManager implements OutputHandler {
+	private class Listener implements CommunicationListener {
 
 		private void setLetter(char letter, int position) {
 			StringBuilder newWord = new StringBuilder(currentWord.getText());
@@ -312,7 +340,7 @@ public class Screen {
 		}
 
 		@Override
-		public void handleMessage(String messageReceived) {
+		public void receivedMessage(String messageReceived) {
 			Message message = new Message(messageReceived);
 			switch (message.getMessageType()) {
 			case MessageType.WELCOME:

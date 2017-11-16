@@ -7,10 +7,13 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Set;
 
 public class HangmanServer {
 
+	private static final String ADDRESS = "localhost";
 	private static final int PORT = 8080;
+
 	private Selector selector;
 	private ServerSocketChannel listeningSocketChannel;
 
@@ -21,40 +24,64 @@ public class HangmanServer {
 
 	private void serve() {
 		try {
-			initSelector();
-			initListeningSocketChannel();
-			while (true) {
-				selector.select();
-				Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
-				while (iterator.hasNext()) {
-					SelectionKey key = iterator.next();
-					iterator.remove();
-					if (!key.isValid()) {
-						continue;
-					}
-					if (key.isAcceptable()) {
-						startHandler(key);
-					} else if (key.isReadable()) {
-						recvFromClient(key);
-					} else if (key.isWritable()) {
-						// Might be managed
-					}
-				}
-			}
+			this.initSelector();
+			this.initListeningSocketChannel();
+			this.listening();
 		} catch (Exception e) {
 			System.err.println("Server failure.");
 		}
 	}
 
+	private void processing() {
+		try {
+			Set<SelectionKey> selectedKeys = this.selector.selectedKeys();
+			Iterator<SelectionKey> iterator = selectedKeys.iterator();
+			while (iterator.hasNext()) {
+				SelectionKey key = iterator.next();
+				iterator.remove();
+				if (!key.isValid()) {
+					continue;
+				}
+				if (key.isAcceptable()) {
+					this.startHandler(key);
+				} else if (key.isReadable()) {
+					this.receivedFromClient(key);
+				} else if (key.isWritable()) {
+					this.sendToClient(key);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Error in treating server entry");
+		}
+	}
+
+	private void sendToClient(SelectionKey key) {
+		ClientHandler client = (ClientHandler) key.attachment();
+		client.sendAll();
+	}
+
+	private void listening() {
+		try {
+			while (true) {
+				if (this.selector.select() <= 0) {
+					continue;
+				}
+				this.processing();
+			}
+		} catch (Exception e) {
+			System.err.println("Server listening failure.");
+		}
+	}
+
 	private void initSelector() throws IOException {
-		selector = Selector.open();
+		this.selector = Selector.open();
 	}
 
 	private void initListeningSocketChannel() throws IOException {
-		listeningSocketChannel = ServerSocketChannel.open();
-		listeningSocketChannel.configureBlocking(false);
-		listeningSocketChannel.bind(new InetSocketAddress(PORT));
-		listeningSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+		this.listeningSocketChannel = ServerSocketChannel.open();
+		this.listeningSocketChannel.configureBlocking(false);
+		this.listeningSocketChannel.bind(new InetSocketAddress(ADDRESS, PORT));
+		this.listeningSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 	}
 
 	private void startHandler(SelectionKey key) throws IOException {
@@ -62,15 +89,16 @@ public class HangmanServer {
 		SocketChannel clientChannel = serverSocketChannel.accept();
 		clientChannel.configureBlocking(false);
 		ClientHandler handler = new ClientHandler(clientChannel);
-		clientChannel.register(selector, SelectionKey.OP_WRITE, handler);
+		int operations = SelectionKey.OP_WRITE | SelectionKey.OP_READ;
+		clientChannel.register(selector, operations, handler);
 	}
 
-	private void recvFromClient(SelectionKey key) throws IOException {
+	private void receivedFromClient(SelectionKey key) throws IOException {
 		ClientHandler clientHandler = (ClientHandler) key.attachment();
 		try {
 			clientHandler.receiveMessage();
 		} catch (IOException clientHasClosedConnection) {
-			removeClient(key);
+			this.removeClient(key);
 		}
 	}
 

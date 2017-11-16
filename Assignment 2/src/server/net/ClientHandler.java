@@ -11,20 +11,18 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ForkJoinPool;
 
 import common.exception.MessageException;
 import common.message.Message;
 import common.message.MessageType;
 
-public class ClientHandler implements Runnable {
+public class ClientHandler {
 
 	private static final String WORDS_FILE = "src/server/net/words.txt";
 
 	private final SocketChannel clientChannel;
 	private final ByteBuffer messageFromClient = ByteBuffer.allocateDirect(MessageType.MESSAGELENGTH);
-	private final Queue<String> messages = new ArrayDeque<>();
-	private StringBuilder receivedCharacters = new StringBuilder();
+	private final Queue<ByteBuffer> messagesToSend = new ArrayDeque<>();
 	private String chosenWord = "";
 	private int wordSize = 0;
 	private int remainingFailedAttempts = 0;
@@ -35,34 +33,6 @@ public class ClientHandler implements Runnable {
 
 	public ClientHandler(SocketChannel clientSocket) {
 		this.clientChannel = clientSocket;
-	}
-
-	@Override
-	public void run() {
-		while (!messages.isEmpty()) {
-			try {
-				String messageReceived = messages.poll();
-				Message message = new Message(messageReceived);
-				switch (message.getMessageType()) {
-				case MessageType.START:
-					this.start(message);
-					break;
-				case MessageType.QUIT:
-					this.disconnectClient();
-					break;
-				case MessageType.LETTER:
-					this.manageLetter(message);
-					break;
-				case MessageType.WORD:
-					this.manageWord(message);
-					break;
-				default:
-					throw new MessageException("Invalid message received: " + message);
-				}
-			} catch (Exception e) {
-				throw new MessageException(e.getMessage());
-			}
-		}
 	}
 
 	/**
@@ -90,15 +60,15 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void letterAlreadyProposed() {
-		this.sendMessage(MessageType.ERRORLETTER);
+		this.prepareMessage(MessageType.ERRORLETTER);
 	}
 
 	private void notALetter() {
-		this.sendMessage(MessageType.NOTALETTER);
+		this.prepareMessage(MessageType.NOTALETTER);
 	}
 
 	private void turnNotBegan() {
-		this.sendMessage(MessageType.ERRORTURN);
+		this.prepareMessage(MessageType.ERRORTURN);
 	}
 
 	private void manageWord(Message message) {
@@ -145,7 +115,7 @@ public class ClientHandler implements Runnable {
 						for (int i = 0; i < chosenWord.length(); i++) {
 							if (this.chosenWord.charAt(i) == letter) {
 								this.numberOfLettersFound++;
-								this.sendMessage(Message.prepareMessage(MessageType.FIND, Character.toString(letter),
+								this.prepareMessage(Message.prepareMessage(MessageType.FIND, Character.toString(letter),
 										Integer.toString(i)));
 							}
 						}
@@ -165,56 +135,76 @@ public class ClientHandler implements Runnable {
 
 	void receiveMessage() throws IOException {
 		this.messageFromClient.clear();
-		int numOfReadBytes;
-		numOfReadBytes = clientChannel.read(messageFromClient);
+		int numOfReadBytes = this.clientChannel.read(this.messageFromClient);
 		if (numOfReadBytes == -1) {
 			throw new IOException("Client has closed connection.");
 		}
 		String receivedString = extractMessageFromBuffer();
-		this.receivedCharacters.append(receivedString);
-		while (extractMsg())
-			;
-		ForkJoinPool.commonPool().execute(this);
+		System.out.println("message received by the server : " + receivedString);
+		this.messageHandler(receivedString);
 	}
 
-	private boolean extractMsg() {
-		String allRecvdChars = receivedCharacters.toString();
-		String[] splitAtHeader = allRecvdChars.split(MessageType.ENDMESSAGE);
-		if (splitAtHeader.length < 2) {
-			return false;
+	private void messageHandler(String messageReceived) {
+		Message message = new Message(messageReceived);
+		switch (message.getMessageType()) {
+		case MessageType.START:
+			this.start(message);
+			break;
+		case MessageType.QUIT:
+			this.disconnectClient();
+			break;
+		case MessageType.LETTER:
+			this.manageLetter(message);
+			break;
+		case MessageType.WORD:
+			this.manageWord(message);
+			break;
+		default:
+			throw new MessageException("Invalid message received: " + message);
 		}
-		String lengthHeader = splitAtHeader[0];
-		int lengthOfFirstMsg = Integer.parseInt(lengthHeader);
-		if (hasCompleteMsg(lengthOfFirstMsg, splitAtHeader[1])) {
-			String completeMsg = splitAtHeader[1].substring(0, lengthOfFirstMsg);
-			messages.add(completeMsg);
-			receivedCharacters.delete(0, lengthHeader.length() + 1 + lengthOfFirstMsg);
-			return true;
-		}
-		return false;
-	}
-
-	private boolean hasCompleteMsg(int msgLen, String recvd) {
-		return recvd.length() >= msgLen;
 	}
 
 	private String extractMessageFromBuffer() {
-		messageFromClient.flip();
-		byte[] bytes = new byte[messageFromClient.remaining()];
-		messageFromClient.get(bytes);
+		this.messageFromClient.flip();
+		byte[] bytes = new byte[this.messageFromClient.remaining()];
+		this.messageFromClient.get(bytes);
 		return new String(bytes);
 	}
 
-	void disconnectClient() throws IOException {
-		this.clientChannel.close();
+	void disconnectClient() {
+		try {
+			this.clientChannel.close();
+		} catch (IOException e) {
+			System.err.println("Error in disconnection of the client");
+		}
 	}
 
-	private void sendMessage(String message) {
-		ByteBuffer byteMessage = stringToByte(message);
+	private void sendMessage(ByteBuffer message) {
+		System.out.println("message sent by the server : " + message);
 		try {
-			clientChannel.write(byteMessage);
+			this.clientChannel.write(message);
+			if (message.hasRemaining()) {
+				throw new MessageException("Server could not send message to client");
+			}
 		} catch (IOException e) {
-			throw new common.exception.IOException("Error while writing server output");
+			System.err.println("Server could not send message");
+		}
+	}
+
+	public void sendAll() {
+		ByteBuffer message = null;
+		synchronized (this.messagesToSend) {
+			while ((message = messagesToSend.peek()) != null) {
+				this.sendMessage(message);
+				this.messagesToSend.remove();
+			}
+		}
+	}
+
+	private void prepareMessage(String message) {
+		ByteBuffer byteMessage = stringToByte(message);
+		synchronized (this.messagesToSend) {
+			this.messagesToSend.add(byteMessage);
 		}
 	}
 
@@ -224,13 +214,13 @@ public class ClientHandler implements Runnable {
 
 	private void defeat() {
 		this.score--;
-		this.sendMessage(Message.prepareMessage(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score)));
+		this.prepareMessage(Message.prepareMessage(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score)));
 		this.reset();
 	}
 
 	private void victory() {
 		this.score++;
-		this.sendMessage(Message.prepareMessage(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score)));
+		this.prepareMessage(Message.prepareMessage(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score)));
 		this.reset();
 	}
 
@@ -250,14 +240,15 @@ public class ClientHandler implements Runnable {
 		this.wordSize = chosenWord.length();
 		this.remainingFailedAttempts = wordSize;
 		this.numberOfLettersFound = 0;
-		this.sendMessage(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.wordSize)));
+		this.prepareMessage(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.wordSize)));
 		this.lettersProposed.clear();
 		this.turnLaunched = true;
 	}
 
 	private void failedAttempt() {
 		this.remainingFailedAttempts--;
-		this.sendMessage(Message.prepareMessage(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts)));
+		this.prepareMessage(
+				Message.prepareMessage(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts)));
 	}
 
 }

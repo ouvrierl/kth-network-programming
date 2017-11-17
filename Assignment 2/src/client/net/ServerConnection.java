@@ -39,6 +39,7 @@ public class ServerConnection implements Runnable {
 	private void listening() throws IOException {
 		while (this.connected || !messagesToSend.isEmpty()) {
 			if (this.timeToSend) {
+				// If I have data to send, I prepare the channel to write
 				this.socketChannel.keyFor(this.selector).interestOps(SelectionKey.OP_WRITE);
 				this.timeToSend = false;
 			}
@@ -70,7 +71,8 @@ public class ServerConnection implements Runnable {
 
 	private void completeConnection(SelectionKey key) throws IOException {
 		this.socketChannel.finishConnect();
-		key.interestOps(SelectionKey.OP_READ);
+		key.interestOps(SelectionKey.OP_READ); // Once I finish the solution, I
+												// listen for data
 	}
 
 	private void receivedFromServer(SelectionKey key) throws IOException {
@@ -107,7 +109,8 @@ public class ServerConnection implements Runnable {
 				}
 				this.messagesToSend.remove();
 			}
-			key.interestOps(SelectionKey.OP_READ);
+			key.interestOps(SelectionKey.OP_READ); // Once I sent data, I listen
+													// for data
 		}
 	}
 

@@ -58,7 +58,16 @@ public class HangmanServer {
 	private void sendToClient(SelectionKey key) {
 		ClientHandler client = (ClientHandler) key.attachment();
 		client.sendAll();
-		key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE); // Once I
+																		// sent
+																		// data,
+																		// I can
+																		// listen
+																		// for
+																		// data
+																		// and
+																		// write
+																		// data
 	}
 
 	private void listening() {
@@ -90,6 +99,7 @@ public class HangmanServer {
 		SocketChannel clientChannel = serverSocketChannel.accept();
 		clientChannel.configureBlocking(false);
 		ClientHandler handler = new ClientHandler(clientChannel);
+		// I can listen for data or write data
 		clientChannel.register(this.selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, handler);
 	}
 

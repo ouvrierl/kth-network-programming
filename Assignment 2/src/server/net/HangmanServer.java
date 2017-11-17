@@ -58,6 +58,7 @@ public class HangmanServer {
 	private void sendToClient(SelectionKey key) {
 		ClientHandler client = (ClientHandler) key.attachment();
 		client.sendAll();
+		key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 	}
 
 	private void listening() {
@@ -89,8 +90,7 @@ public class HangmanServer {
 		SocketChannel clientChannel = serverSocketChannel.accept();
 		clientChannel.configureBlocking(false);
 		ClientHandler handler = new ClientHandler(clientChannel);
-		int operations = SelectionKey.OP_WRITE | SelectionKey.OP_READ;
-		clientChannel.register(selector, operations, handler);
+		clientChannel.register(this.selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, handler);
 	}
 
 	private void receivedFromClient(SelectionKey key) throws IOException {

@@ -7,6 +7,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 import common.message.Message;
@@ -19,8 +21,9 @@ public class ServerConnection implements Runnable {
 	private SocketChannel socketChannel;
 	private Selector selector;
 	private final Queue<ByteBuffer> messagesToSend = new ArrayDeque<>();
-	private CommunicationListener listener = null;
+	private List<CommunicationListener> listeners = new ArrayList<>();
 	private final ByteBuffer messageFromServer = ByteBuffer.allocateDirect(MessageType.MESSAGELENGTH);
+	private volatile boolean timeToSend = false;
 
 	@Override
 	public void run() {
@@ -34,7 +37,11 @@ public class ServerConnection implements Runnable {
 	}
 
 	private void listening() throws IOException {
-		while (this.connected) {
+		while (this.connected || !messagesToSend.isEmpty()) {
+			if (this.timeToSend) {
+				this.socketChannel.keyFor(this.selector).interestOps(SelectionKey.OP_WRITE);
+				this.timeToSend = false;
+			}
 			if (this.selector.select() > 0) {
 				this.processing();
 			}
@@ -49,7 +56,7 @@ public class ServerConnection implements Runnable {
 					continue;
 				}
 				if (key.isConnectable()) {
-					this.socketChannel.finishConnect();
+					this.completeConnection(key);
 				} else if (key.isReadable()) {
 					this.receivedFromServer(key);
 				} else if (key.isWritable()) {
@@ -61,14 +68,25 @@ public class ServerConnection implements Runnable {
 		}
 	}
 
+	private void completeConnection(SelectionKey key) throws IOException {
+		this.socketChannel.finishConnect();
+		key.interestOps(SelectionKey.OP_READ);
+	}
+
 	private void receivedFromServer(SelectionKey key) throws IOException {
-		int numOfReadBytes = this.socketChannel.read(messageFromServer);
+		this.messageFromServer.clear();
+		int numOfReadBytes = this.socketChannel.read(this.messageFromServer);
 		if (numOfReadBytes == -1) {
 			throw new IOException("Error while reading client input");
 		}
 		String receivedString = extractMessageFromBuffer();
 		System.out.println("message received by the client : " + receivedString);
-		this.listener.receivedMessage(receivedString);
+		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
+		for (String singleMessage : messages) {
+			for (CommunicationListener listener : this.listeners) {
+				listener.receivedMessage(singleMessage);
+			}
+		}
 	}
 
 	private String extractMessageFromBuffer() {
@@ -82,7 +100,7 @@ public class ServerConnection implements Runnable {
 		ByteBuffer message;
 		synchronized (this.messagesToSend) {
 			while ((message = this.messagesToSend.peek()) != null) {
-				System.out.println("message sent by the server : " + message);
+				System.out.println("message sent by the client : " + new String(message.array()));
 				this.socketChannel.write(message);
 				if (message.hasRemaining()) {
 					return;
@@ -95,8 +113,7 @@ public class ServerConnection implements Runnable {
 
 	private void initSelector() throws IOException {
 		this.selector = Selector.open();
-		int operations = SelectionKey.OP_CONNECT | SelectionKey.OP_READ | SelectionKey.OP_WRITE;
-		this.socketChannel.register(selector, operations);
+		this.socketChannel.register(selector, SelectionKey.OP_CONNECT);
 	}
 
 	private void initConnection() throws Exception {
@@ -108,7 +125,7 @@ public class ServerConnection implements Runnable {
 
 	public void connect(String host, int port, CommunicationListener listener) {
 		this.serverAddress = new InetSocketAddress(host, port);
-		this.listener = listener;
+		this.listeners.add(listener);
 		new Thread(this).start();
 	}
 
@@ -125,6 +142,7 @@ public class ServerConnection implements Runnable {
 		synchronized (this.messagesToSend) {
 			this.messagesToSend.add(ByteBuffer.wrap(message.getBytes()));
 		}
+		this.timeToSend = true;
 		this.selector.wakeup();
 	}
 

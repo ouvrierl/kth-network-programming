@@ -141,7 +141,10 @@ public class ClientHandler {
 		}
 		String receivedString = extractMessageFromBuffer();
 		System.out.println("message received by the server : " + receivedString);
-		this.messageHandler(receivedString);
+		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
+		for (String singleMessage : messages) {
+			this.messageHandler(singleMessage);
+		}
 	}
 
 	private void messageHandler(String messageReceived) {
@@ -180,7 +183,7 @@ public class ClientHandler {
 	}
 
 	private void sendMessage(ByteBuffer message) {
-		System.out.println("message sent by the server : " + message);
+		System.out.println("message sent by the server : " + new String(message.array()));
 		try {
 			this.clientChannel.write(message);
 			if (message.hasRemaining()) {

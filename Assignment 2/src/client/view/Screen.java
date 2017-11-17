@@ -49,7 +49,6 @@ public class Screen implements Runnable {
 		this.server = new ServerConnection();
 
 		// View
-		// new Thread(this).start();
 		this.initialize();
 
 		// Automatic connection
@@ -181,7 +180,6 @@ public class Screen implements Runnable {
 				this.sendMessage(Message.prepareMessage(MessageType.WORD, proposition));
 			}
 		}
-
 	}
 
 	private void sendMessage(String message) {

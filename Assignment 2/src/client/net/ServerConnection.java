@@ -32,7 +32,7 @@ public class ServerConnection implements Runnable {
 			this.initSelector();
 			this.listening();
 		} catch (Exception e) {
-			System.err.println("Error in client connection to the server");
+			System.err.println("Error in client connection to the server.");
 		}
 	}
 
@@ -57,36 +57,36 @@ public class ServerConnection implements Runnable {
 					continue;
 				}
 				if (key.isConnectable()) {
-					this.completeConnection(key);
+					this.finishConnection(key);
 				} else if (key.isReadable()) {
-					this.receivedFromServer(key);
+					this.receiveMessages(key);
 				} else if (key.isWritable()) {
-					this.sendToServer(key);
+					this.sendMessages(key);
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Error in processing client input");
+			System.err.println("Error in processing client input.");
 		}
 	}
 
-	private void completeConnection(SelectionKey key) throws IOException {
+	private void finishConnection(SelectionKey key) throws IOException {
 		this.socketChannel.finishConnect();
-		key.interestOps(SelectionKey.OP_READ); // Once I finish the solution, I
-												// listen for data
+		key.interestOps(SelectionKey.OP_READ);
 	}
 
-	private void receivedFromServer(SelectionKey key) throws IOException {
+	private void receiveMessages(SelectionKey key) throws IOException {
 		this.messageFromServer.clear();
 		int numOfReadBytes = this.socketChannel.read(this.messageFromServer);
 		if (numOfReadBytes == -1) {
-			throw new IOException("Error while reading client input");
+			throw new IOException("Error while reading client input.");
 		}
 		String receivedString = extractMessageFromBuffer();
-		System.out.println("message received by the client : " + receivedString);
+		// There can be several messages received in the buffer, so we have to
+		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
 		for (String singleMessage : messages) {
 			for (CommunicationListener listener : this.listeners) {
-				listener.receivedMessage(singleMessage);
+				listener.receiveMessage(singleMessage);
 			}
 		}
 	}
@@ -98,19 +98,18 @@ public class ServerConnection implements Runnable {
 		return new String(bytes);
 	}
 
-	private void sendToServer(SelectionKey key) throws IOException {
+	private void sendMessages(SelectionKey key) throws IOException {
 		ByteBuffer message;
 		synchronized (this.messagesToSend) {
 			while ((message = this.messagesToSend.peek()) != null) {
-				System.out.println("message sent by the client : " + new String(message.array()));
 				this.socketChannel.write(message);
 				if (message.hasRemaining()) {
 					return;
 				}
 				this.messagesToSend.remove();
 			}
-			key.interestOps(SelectionKey.OP_READ); // Once I sent data, I listen
-													// for data
+			// Once I sent all the messages, I listen again for new messages
+			key.interestOps(SelectionKey.OP_READ);
 		}
 	}
 

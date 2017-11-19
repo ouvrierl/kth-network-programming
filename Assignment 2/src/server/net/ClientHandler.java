@@ -54,21 +54,21 @@ public class ClientHandler {
 				i++;
 			}
 		} catch (Exception e) {
-			throw new common.exception.IOException("Error in reading words file");
+			throw new common.exception.IOException("Error in reading words file.");
 		}
 		return word.toLowerCase();
 	}
 
 	private void letterAlreadyProposed() {
-		this.prepareMessage(MessageType.ERRORLETTER);
+		this.addMessageToSend(Message.prepareMessage(MessageType.ERRORLETTER));
 	}
 
 	private void notALetter() {
-		this.prepareMessage(MessageType.NOTALETTER);
+		this.addMessageToSend(Message.prepareMessage(MessageType.NOTALETTER));
 	}
 
 	private void turnNotBegan() {
-		this.prepareMessage(MessageType.ERRORTURN);
+		this.addMessageToSend(Message.prepareMessage(MessageType.ERRORTURN));
 	}
 
 	private void manageWord(Message message) {
@@ -115,8 +115,8 @@ public class ClientHandler {
 						for (int i = 0; i < chosenWord.length(); i++) {
 							if (this.chosenWord.charAt(i) == letter) {
 								this.numberOfLettersFound++;
-								this.prepareMessage(Message.prepareMessage(MessageType.FIND, Character.toString(letter),
-										Integer.toString(i)));
+								this.addMessageToSend(Message.prepareMessage(MessageType.FIND,
+										Character.toString(letter), Integer.toString(i)));
 							}
 						}
 					} else {
@@ -140,7 +140,8 @@ public class ClientHandler {
 			throw new IOException("Client has closed connection.");
 		}
 		String receivedString = extractMessageFromBuffer();
-		System.out.println("message received by the server : " + receivedString);
+		// There can be several messages received in the buffer, so we have to
+		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
 		for (String singleMessage : messages) {
 			this.messageHandler(singleMessage);
@@ -178,23 +179,22 @@ public class ClientHandler {
 		try {
 			this.clientChannel.close();
 		} catch (IOException e) {
-			System.err.println("Error in disconnection of the client");
+			System.err.println("Error in disconnection of the client.");
 		}
 	}
 
 	private void sendMessage(ByteBuffer message) {
-		System.out.println("message sent by the server : " + new String(message.array()));
 		try {
 			this.clientChannel.write(message);
 			if (message.hasRemaining()) {
-				throw new MessageException("Server could not send message to client");
+				throw new MessageException("Server could not send the message to the client.");
 			}
 		} catch (IOException e) {
-			System.err.println("Server could not send message");
+			System.err.println("Server could not send the messages to the client.");
 		}
 	}
 
-	public void sendAll() {
+	public void sendAllMessages() {
 		ByteBuffer message = null;
 		synchronized (this.messagesToSend) {
 			while ((message = messagesToSend.peek()) != null) {
@@ -204,7 +204,7 @@ public class ClientHandler {
 		}
 	}
 
-	private void prepareMessage(String message) {
+	private void addMessageToSend(String message) {
 		ByteBuffer byteMessage = stringToByte(message);
 		synchronized (this.messagesToSend) {
 			this.messagesToSend.add(byteMessage);
@@ -217,13 +217,15 @@ public class ClientHandler {
 
 	private void defeat() {
 		this.score--;
-		this.prepareMessage(Message.prepareMessage(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score)));
+		this.addMessageToSend(
+				Message.prepareMessage(MessageType.DEFEAT, this.chosenWord, Integer.toString(this.score)));
 		this.reset();
 	}
 
 	private void victory() {
 		this.score++;
-		this.prepareMessage(Message.prepareMessage(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score)));
+		this.addMessageToSend(
+				Message.prepareMessage(MessageType.VICTORY, this.chosenWord, Integer.toString(this.score)));
 		this.reset();
 	}
 
@@ -243,14 +245,14 @@ public class ClientHandler {
 		this.wordSize = chosenWord.length();
 		this.remainingFailedAttempts = wordSize;
 		this.numberOfLettersFound = 0;
-		this.prepareMessage(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.wordSize)));
+		this.addMessageToSend(Message.prepareMessage(MessageType.WELCOME, Integer.toString(this.wordSize)));
 		this.lettersProposed.clear();
 		this.turnLaunched = true;
 	}
 
 	private void failedAttempt() {
 		this.remainingFailedAttempts--;
-		this.prepareMessage(
+		this.addMessageToSend(
 				Message.prepareMessage(MessageType.ATTEMPT, Integer.toString(this.remainingFailedAttempts)));
 	}
 

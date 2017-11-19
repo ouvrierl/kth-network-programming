@@ -25,7 +25,7 @@ import common.exception.MessageException;
 import common.message.Message;
 import common.message.MessageType;
 
-public class Screen implements Runnable {
+public class Screen {
 
 	private static final int PORT = 8080;
 	private static final String ADDRESS = "localhost";
@@ -54,13 +54,6 @@ public class Screen implements Runnable {
 		// Automatic connection
 		this.server.connect(ADDRESS, PORT, new Listener());
 
-	}
-
-	@Override
-	public void run() {
-		while (this.receivingMessages) {
-			// Do something?
-		}
 	}
 
 	private void initialize() {
@@ -338,7 +331,7 @@ public class Screen implements Runnable {
 		}
 
 		@Override
-		public void receivedMessage(String messageReceived) {
+		public void receiveMessage(String messageReceived) {
 			Message message = new Message(messageReceived);
 			switch (message.getMessageType()) {
 			case MessageType.WELCOME:

@@ -19,16 +19,16 @@ public class HangmanServer {
 
 	public static void main(String[] args) {
 		HangmanServer hangmanServer = new HangmanServer();
-		hangmanServer.serve();
+		hangmanServer.launchServer();
 	}
 
-	private void serve() {
+	private void launchServer() {
 		try {
 			this.initSelector();
 			this.initListeningSocketChannel();
 			this.listening();
 		} catch (Exception e) {
-			System.err.println("Server failure.");
+			System.err.println("Error while launching the server.");
 		}
 	}
 
@@ -43,31 +43,21 @@ public class HangmanServer {
 					continue;
 				}
 				if (key.isAcceptable()) {
-					this.startHandler(key);
+					this.launchClient(key);
 				} else if (key.isReadable()) {
-					this.receivedFromClient(key);
+					this.receiveMessages(key);
 				} else if (key.isWritable()) {
-					this.sendToClient(key);
+					this.sendMessages(key);
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Error in treating server entry");
+			System.err.println("Error in treating server entry.");
 		}
 	}
 
-	private void sendToClient(SelectionKey key) {
+	private void sendMessages(SelectionKey key) {
 		ClientHandler client = (ClientHandler) key.attachment();
-		client.sendAll();
-		key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE); // Once I
-																		// sent
-																		// data,
-																		// I can
-																		// listen
-																		// for
-																		// data
-																		// and
-																		// write
-																		// data
+		client.sendAllMessages();
 	}
 
 	private void listening() {
@@ -79,7 +69,7 @@ public class HangmanServer {
 				this.processing();
 			}
 		} catch (Exception e) {
-			System.err.println("Server listening failure.");
+			System.err.println("Error while server listening.");
 		}
 	}
 
@@ -94,25 +84,25 @@ public class HangmanServer {
 		this.listeningSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 	}
 
-	private void startHandler(SelectionKey key) throws IOException {
+	private void launchClient(SelectionKey key) throws IOException {
 		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
 		SocketChannel clientChannel = serverSocketChannel.accept();
 		clientChannel.configureBlocking(false);
 		ClientHandler handler = new ClientHandler(clientChannel);
-		// I can listen for data or write data
-		clientChannel.register(this.selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, handler);
+		// The server will manage read and write for each client
+		clientChannel.register(this.selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ, handler);
 	}
 
-	private void receivedFromClient(SelectionKey key) throws IOException {
+	private void receiveMessages(SelectionKey key) throws IOException {
 		ClientHandler clientHandler = (ClientHandler) key.attachment();
 		try {
 			clientHandler.receiveMessage();
 		} catch (IOException clientHasClosedConnection) {
-			this.removeClient(key);
+			this.disconnectClient(key);
 		}
 	}
 
-	private void removeClient(SelectionKey clientKey) throws IOException {
+	private void disconnectClient(SelectionKey clientKey) throws IOException {
 		ClientHandler clientHandler = (ClientHandler) clientKey.attachment();
 		clientHandler.disconnectClient();
 		clientKey.cancel();

@@ -9,7 +9,7 @@ public class Message {
 	private String entireMessage;
 
 	public Message(String message) {
-		this.parse(message);
+		this.splitTypeArguments(message);
 		this.entireMessage = message;
 	}
 
@@ -21,7 +21,7 @@ public class Message {
 		return this.messageBody;
 	}
 
-	private void parse(String message) {
+	private void splitTypeArguments(String message) {
 		String[] split = message.split(MessageType.DELIMITER);
 		this.messageType = split[0];
 		this.messageBody = new ArrayList<>();
@@ -43,7 +43,12 @@ public class Message {
 		}
 		message.setLength(message.length() - 1); // Last useless space is
 													// removed
-		message.append(MessageType.ENDMESSAGE);
+		message.append(MessageType.ENDMESSAGE); // We add the end message symbol
+												// (#) at the end of each
+												// message, in order to be able
+												// to split them (several
+												// messages can follow in the
+												// buffer received)
 		return message.toString();
 	}
 }

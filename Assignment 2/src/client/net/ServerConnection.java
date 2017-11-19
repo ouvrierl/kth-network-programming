@@ -7,8 +7,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 
 import common.message.Message;
@@ -21,7 +19,7 @@ public class ServerConnection implements Runnable {
 	private SocketChannel socketChannel;
 	private Selector selector;
 	private final Queue<ByteBuffer> messagesToSend = new ArrayDeque<>();
-	private List<CommunicationListener> listeners = new ArrayList<>();
+	private CommunicationListener listener;
 	private final ByteBuffer messageFromServer = ByteBuffer.allocateDirect(MessageType.MESSAGELENGTH);
 	private volatile boolean timeToSend = false;
 
@@ -85,9 +83,7 @@ public class ServerConnection implements Runnable {
 		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
 		for (String singleMessage : messages) {
-			for (CommunicationListener listener : this.listeners) {
-				listener.receiveMessage(singleMessage);
-			}
+			this.listener.receiveMessage(singleMessage);
 		}
 	}
 
@@ -127,7 +123,7 @@ public class ServerConnection implements Runnable {
 
 	public void connect(String host, int port, CommunicationListener listener) {
 		this.serverAddress = new InetSocketAddress(host, port);
-		this.listeners.add(listener);
+		this.listener = listener;
 		new Thread(this).start();
 	}
 

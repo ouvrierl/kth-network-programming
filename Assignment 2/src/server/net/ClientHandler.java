@@ -11,18 +11,20 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ForkJoinPool;
 
 import common.exception.MessageException;
 import common.message.Message;
 import common.message.MessageType;
 
-public class ClientHandler {
+public class ClientHandler implements Runnable {
 
 	private static final String WORDS_FILE = "src/server/net/words.txt";
 
 	private final SocketChannel clientChannel;
 	private final ByteBuffer messageFromClient = ByteBuffer.allocateDirect(MessageType.MESSAGELENGTH);
 	private final Queue<ByteBuffer> messagesToSend = new ArrayDeque<>();
+	private final Queue<String> messagesReceived = new ArrayDeque<>();
 	private String chosenWord = "";
 	private int wordSize = 0;
 	private int remainingFailedAttempts = 0;
@@ -144,27 +146,31 @@ public class ClientHandler {
 		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
 		for (String singleMessage : messages) {
-			this.messageHandler(singleMessage);
+			this.messagesReceived.add(singleMessage);
 		}
+		ForkJoinPool.commonPool().execute(this);
 	}
 
-	private void messageHandler(String messageReceived) {
-		Message message = new Message(messageReceived);
-		switch (message.getMessageType()) {
-		case MessageType.START:
-			this.start(message);
-			break;
-		case MessageType.QUIT:
-			this.disconnectClient();
-			break;
-		case MessageType.LETTER:
-			this.manageLetter(message);
-			break;
-		case MessageType.WORD:
-			this.manageWord(message);
-			break;
-		default:
-			throw new MessageException("Invalid message received: " + message);
+	@Override
+	public void run() {
+		while (!this.messagesReceived.isEmpty()) {
+			Message message = new Message(this.messagesReceived.poll());
+			switch (message.getMessageType()) {
+			case MessageType.START:
+				this.start(message);
+				break;
+			case MessageType.QUIT:
+				this.disconnectClient();
+				break;
+			case MessageType.LETTER:
+				this.manageLetter(message);
+				break;
+			case MessageType.WORD:
+				this.manageWord(message);
+				break;
+			default:
+				throw new MessageException("Invalid message received: " + message);
+			}
 		}
 	}
 

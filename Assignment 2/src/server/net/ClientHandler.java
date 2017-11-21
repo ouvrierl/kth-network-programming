@@ -145,6 +145,7 @@ public class ClientHandler implements Runnable {
 		// There can be several messages received in the buffer, so we have to
 		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
+		// All the messages received are put in a queue and a pool is launched to manage all the messages
 		for (String singleMessage : messages) {
 			this.messagesReceived.add(singleMessage);
 		}

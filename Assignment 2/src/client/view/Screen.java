@@ -8,6 +8,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -332,34 +334,43 @@ public class Screen {
 
 		@Override
 		public void receiveMessage(String messageReceived) {
-			Message message = new Message(messageReceived);
-			switch (message.getMessageType()) {
-			case MessageType.WELCOME:
-				this.welcome(message);
-				break;
-			case MessageType.ATTEMPT:
-				this.attempt(message);
-				break;
-			case MessageType.DEFEAT:
-				this.defeat(message);
-				break;
-			case MessageType.VICTORY:
-				this.victory(message);
-				break;
-			case MessageType.FIND:
-				this.find(message);
-				break;
-			case MessageType.ERRORLETTER:
-				this.errorLetter(message);
-				break;
-			case MessageType.ERRORTURN:
-				this.errorTurn(message);
-				break;
-			case MessageType.NOTALETTER:
-				this.notALetter(message);
-				break;
-			default:
-				throw new MessageException("Invalid message received: " + message);
+			this.messagesReceived.add(messageReceived);
+		}
+		
+		private final Queue<String> messagesReceived = new ArrayDeque<>();
+
+		@Override
+		public void run() {
+			while(!this.messagesReceived.isEmpty()){
+				Message message = new Message(this.messagesReceived.poll());
+				switch (message.getMessageType()) {
+				case MessageType.WELCOME:
+					this.welcome(message);
+					break;
+				case MessageType.ATTEMPT:
+					this.attempt(message);
+					break;
+				case MessageType.DEFEAT:
+					this.defeat(message);
+					break;
+				case MessageType.VICTORY:
+					this.victory(message);
+					break;
+				case MessageType.FIND:
+					this.find(message);
+					break;
+				case MessageType.ERRORLETTER:
+					this.errorLetter(message);
+					break;
+				case MessageType.ERRORTURN:
+					this.errorTurn(message);
+					break;
+				case MessageType.NOTALETTER:
+					this.notALetter(message);
+					break;
+				default:
+					throw new MessageException("Invalid message received: " + message);
+				}
 			}
 		}
 	}

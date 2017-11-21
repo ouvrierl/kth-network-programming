@@ -8,6 +8,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.concurrent.ForkJoinPool;
 
 import common.message.Message;
 import common.message.MessageType;
@@ -82,9 +83,11 @@ public class ServerConnection implements Runnable {
 		// There can be several messages received in the buffer, so we have to
 		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
+		// All the messages received are put in a queue and a pool is launched to manage all the messages
 		for (String singleMessage : messages) {
 			this.listener.receiveMessage(singleMessage);
 		}
+		ForkJoinPool.commonPool().execute(this.listener);
 	}
 
 	private String extractMessageFromBuffer() {

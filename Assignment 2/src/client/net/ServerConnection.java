@@ -70,6 +70,7 @@ public class ServerConnection implements Runnable {
 
 	private void finishConnection(SelectionKey key) throws IOException {
 		this.socketChannel.finishConnect();
+		// The default operation is reading because it will change to write if there are messages to send, thanks to the flag timeToSend
 		key.interestOps(SelectionKey.OP_READ);
 	}
 

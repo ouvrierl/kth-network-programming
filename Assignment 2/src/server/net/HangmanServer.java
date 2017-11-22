@@ -56,8 +56,8 @@ public class HangmanServer {
 	}
 
 	private void sendMessages(SelectionKey key) {
-		ClientHandler client = (ClientHandler) key.attachment();
-		client.sendAllMessages();
+		ClientHandler clientHandler = (ClientHandler) key.attachment();
+		clientHandler.sendAllMessages();
 	}
 
 	private void listening() {

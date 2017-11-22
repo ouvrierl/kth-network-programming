@@ -336,12 +336,12 @@ public class Screen {
 		public void receiveMessage(String messageReceived) {
 			this.messagesReceived.add(messageReceived);
 		}
-		
+
 		private final Queue<String> messagesReceived = new ArrayDeque<>();
 
 		@Override
 		public void run() {
-			while(!this.messagesReceived.isEmpty()){
+			while (!this.messagesReceived.isEmpty()) {
 				Message message = new Message(this.messagesReceived.poll());
 				switch (message.getMessageType()) {
 				case MessageType.WELCOME:

@@ -70,7 +70,8 @@ public class ServerConnection implements Runnable {
 
 	private void finishConnection(SelectionKey key) throws IOException {
 		this.socketChannel.finishConnect();
-		// The default operation is reading because it will change to write if there are messages to send, thanks to the flag timeToSend
+		// The default operation is reading because it will change to write if
+		// there are messages to send, thanks to the flag timeToSend
 		key.interestOps(SelectionKey.OP_READ);
 	}
 
@@ -84,7 +85,8 @@ public class ServerConnection implements Runnable {
 		// There can be several messages received in the buffer, so we have to
 		// split them before taking care of each message
 		String[] messages = receivedString.split(MessageType.ENDMESSAGE);
-		// All the messages received are put in a queue and a pool is launched to manage all the messages
+		// All the messages received are put in a queue and a pool is launched
+		// to manage all the messages
 		for (String singleMessage : messages) {
 			this.listener.receiveMessage(singleMessage);
 		}

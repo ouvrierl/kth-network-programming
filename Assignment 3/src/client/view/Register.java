@@ -68,7 +68,7 @@ public class Register {
 						usernameValue.setText("");
 						passwordValue.setText("");
 					}
-				} catch (Exception error) {
+				} catch (Exception exception) {
 					System.err.println("Register request failed.");
 				}
 

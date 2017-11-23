@@ -68,7 +68,7 @@ public class Login {
 						usernameValue.setText("");
 						passwordValue.setText("");
 					}
-				} catch (Exception error) {
+				} catch (Exception exception) {
 					System.err.println("Login request failed.");
 				}
 			}

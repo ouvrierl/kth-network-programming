@@ -10,13 +10,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 
 public class Home {
 
 	private Scene scene;
 
-	public Home(Stage primaryStage) {
+	public Home(ViewManager viewManager) {
 		GridPane root = new GridPane();
 		root.setAlignment(Pos.CENTER);
 		root.setHgap(10);
@@ -31,9 +30,9 @@ public class Home {
 		login.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Login login = new Login(primaryStage);
+				Login login = new Login(viewManager);
 				Scene loginScene = login.getScene();
-				primaryStage.setScene(loginScene);
+				viewManager.getStage().setScene(loginScene);
 			}
 		});
 
@@ -55,9 +54,9 @@ public class Home {
 		register.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Register register = new Register(primaryStage);
+				Register register = new Register(viewManager);
 				Scene registerScene = register.getScene();
-				primaryStage.setScene(registerScene);
+				viewManager.getStage().setScene(registerScene);
 			}
 		});
 

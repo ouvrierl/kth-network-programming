@@ -14,13 +14,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 
 public class Register {
 
 	private Scene scene;
 
-	public Register(Stage primaryStage) {
+	public Register(ViewManager viewManager) {
 		GridPane root = new GridPane();
 		root.setAlignment(Pos.CENTER);
 		root.setHgap(10);
@@ -47,26 +46,32 @@ public class Register {
 		register.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				String username = usernameValue.getText();
-				String password = passwordValue.getText();
-				if (!username.equals("username")) {
-					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setTitle("Register success");
-					alert.setHeaderText(null);
-					alert.setContentText("You are now registered.\nYou can login.");
-					alert.showAndWait();
-					Home home = new Home(primaryStage);
-					Scene homeScene = home.getScene();
-					primaryStage.setScene(homeScene);
-				} else {
-					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setTitle("Register failure");
-					alert.setHeaderText(null);
-					alert.setContentText("The username already exists, please choose another one.");
-					alert.showAndWait();
-					usernameValue.setText("");
-					passwordValue.setText("");
+
+				try {
+					String username = usernameValue.getText();
+					String password = passwordValue.getText();
+					if (viewManager.getServer().register(username, password)) {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Register success");
+						alert.setHeaderText(null);
+						alert.setContentText("You are now registered.\nYou can login.");
+						alert.showAndWait();
+						Home home = new Home(viewManager);
+						Scene homeScene = home.getScene();
+						viewManager.getStage().setScene(homeScene);
+					} else {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Register failure");
+						alert.setHeaderText(null);
+						alert.setContentText("The username already exists, please choose another one.");
+						alert.showAndWait();
+						usernameValue.setText("");
+						passwordValue.setText("");
+					}
+				} catch (Exception error) {
+					System.err.println("Register request failed.");
 				}
+
 			}
 		});
 
@@ -76,9 +81,9 @@ public class Register {
 		home.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Home home = new Home(primaryStage);
+				Home home = new Home(viewManager);
 				Scene homeScene = home.getScene();
-				primaryStage.setScene(homeScene);
+				viewManager.getStage().setScene(homeScene);
 			}
 		});
 

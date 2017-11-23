@@ -46,7 +46,6 @@ public class Register {
 		register.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-
 				try {
 					String username = usernameValue.getText();
 					String password = passwordValue.getText();
@@ -71,7 +70,6 @@ public class Register {
 				} catch (Exception exception) {
 					System.err.println("Register request failed.");
 				}
-
 			}
 		});
 

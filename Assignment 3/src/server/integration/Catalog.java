@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import common.exception.DatabaseException;
+import server.model.User;
 
 public class Catalog {
 
@@ -62,16 +63,26 @@ public class Catalog {
 	public boolean createAccount(String username, String password) {
 		try {
 			this.checkUsername.setString(1, username);
-			ResultSet result = checkUsername.executeQuery();
+			ResultSet result = this.checkUsername.executeQuery();
 			if (result.next()) {
 				return false;
 			}
 			this.createAccount.setString(1, username);
 			this.createAccount.setString(2, password);
-			int rows = createAccount.executeUpdate();
+			int rows = this.createAccount.executeUpdate();
 			return rows == 1;
 		} catch (SQLException sqle) {
 			throw new DatabaseException("Error while creating account.");
+		}
+	}
+
+	public boolean deleteAccount(User user) {
+		try {
+			this.deleteAccount.setString(1, user.getUsername());
+			int rows = this.deleteAccount.executeUpdate();
+			return rows == 1;
+		} catch (SQLException sqle) {
+			throw new DatabaseException("Error while removing account.");
 		}
 	}
 

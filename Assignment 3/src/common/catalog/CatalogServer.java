@@ -11,4 +11,8 @@ public interface CatalogServer extends Remote {
 
 	boolean register(String username, String password) throws RemoteException;
 
+	boolean unregister() throws RemoteException;
+
+	boolean logout() throws RemoteException;
+
 }

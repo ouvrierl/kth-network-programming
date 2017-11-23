@@ -41,11 +41,23 @@ public class Home {
 		logout.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setTitle("Logout");
-				alert.setHeaderText(null);
-				alert.setContentText("You are now logged out.");
-				alert.showAndWait();
+				try {
+					if (viewManager.getServer().logout()) {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Logout success");
+						alert.setHeaderText(null);
+						alert.setContentText("You are now logged out.");
+						alert.showAndWait();
+					} else {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Logout failure");
+						alert.setHeaderText(null);
+						alert.setContentText("Impossible to logout.\nMake sure you are logged.");
+						alert.showAndWait();
+					}
+				} catch (Exception exception) {
+					System.err.println("Error while trying to log out.");
+				}
 			}
 		});
 
@@ -65,11 +77,23 @@ public class Home {
 		unregister.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setTitle("Unregister");
-				alert.setHeaderText(null);
-				alert.setContentText("You are now unregistered.");
-				alert.showAndWait();
+				try {
+					if (viewManager.getServer().unregister()) {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Unregister success");
+						alert.setHeaderText(null);
+						alert.setContentText("You are now unregistered.");
+						alert.showAndWait();
+					} else {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Unregister failure");
+						alert.setHeaderText(null);
+						alert.setContentText("Impossible to unregister.\nMake sure you are logged.");
+						alert.showAndWait();
+					}
+				} catch (Exception exception) {
+					System.err.println("Unregister request failed.");
+				}
 			}
 		});
 

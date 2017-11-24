@@ -6,6 +6,7 @@ public class Constants {
 	 * From client to server
 	 */
 	public static final String QUIT = "QUIT";
+	public static final String FILE = "FILE";
 
 	/**
 	 * From server to client

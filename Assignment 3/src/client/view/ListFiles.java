@@ -81,11 +81,38 @@ public class ListFiles {
 			public TableCell<CatalogFile, Boolean> call(TableColumn<CatalogFile, Boolean> p) {
 				return new Download(viewManager);
 			}
-
+		});
+		TableColumn update = new TableColumn("Update");
+		update.setCellValueFactory(
+				new Callback<TableColumn.CellDataFeatures<CatalogFile, Boolean>, ObservableValue<Boolean>>() {
+					@Override
+					public ObservableValue<Boolean> call(TableColumn.CellDataFeatures<CatalogFile, Boolean> p) {
+						return new SimpleBooleanProperty(p.getValue() != null);
+					}
+				});
+		update.setCellFactory(new Callback<TableColumn<CatalogFile, Boolean>, TableCell<CatalogFile, Boolean>>() {
+			@Override
+			public TableCell<CatalogFile, Boolean> call(TableColumn<CatalogFile, Boolean> p) {
+				return new Update(viewManager);
+			}
+		});
+		TableColumn delete = new TableColumn("Delete");
+		delete.setCellValueFactory(
+				new Callback<TableColumn.CellDataFeatures<CatalogFile, Boolean>, ObservableValue<Boolean>>() {
+					@Override
+					public ObservableValue<Boolean> call(TableColumn.CellDataFeatures<CatalogFile, Boolean> p) {
+						return new SimpleBooleanProperty(p.getValue() != null);
+					}
+				});
+		delete.setCellFactory(new Callback<TableColumn<CatalogFile, Boolean>, TableCell<CatalogFile, Boolean>>() {
+			@Override
+			public TableCell<CatalogFile, Boolean> call(TableColumn<CatalogFile, Boolean> p) {
+				return new Delete(viewManager);
+			}
 		});
 		table.setItems(data);
-		table.getColumns().addAll(name, size, owner, access, action, download);
-		table.setMinWidth(700);
+		table.getColumns().addAll(name, size, owner, access, action, download, update, delete);
+		table.setMinWidth(800);
 		root.add(table, 0, 2);
 
 		Button addFile = new Button("Add a file to the catalog");
@@ -147,7 +174,7 @@ public class ListFiles {
 			}
 		});
 
-		this.scene = new Scene(root, 800, 600);
+		this.scene = new Scene(root, 850, 600);
 		this.scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
 	}

@@ -50,7 +50,6 @@ public class ServerConnection implements Runnable {
 
 	public void sendMessage(String message) {
 		try {
-			this.output.write(0);
 			this.output.writeUTF(message);
 			this.output.flush();
 		} catch (IOException e) {
@@ -60,14 +59,17 @@ public class ServerConnection implements Runnable {
 
 	public void sendFile(File file) {
 		try (FileInputStream fis = new FileInputStream(file);) {
-			this.output.write(1);
+			this.output.writeUTF(Constants.FILE);
+			this.output.flush();
 			this.output.writeLong(file.length());
+			this.output.flush();
 			this.output.writeUTF(file.getName());
+			this.output.flush();
 			byte[] buffer = new byte[Constants.BUFFER_SIZE];
 			while (fis.read(buffer) > 0) {
 				this.output.write(buffer);
+				this.output.flush();
 			}
-			this.output.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new MessageException("Error while sending file to server.");

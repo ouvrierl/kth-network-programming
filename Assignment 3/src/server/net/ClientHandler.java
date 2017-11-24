@@ -42,23 +42,31 @@ public class ClientHandler implements Runnable {
 						case Constants.QUIT:
 							this.quit();
 							break;
+						case Constants.FILE:
+							long size = this.input.readLong();
+							String name = this.input.readUTF();
+							File file = new File(FILES_DIRECTORY + name);
+							FileOutputStream fos = null;
+							if (!file.exists()) {
+								fos = new FileOutputStream(file.getAbsolutePath());
+							}
+							byte[] buffer = new byte[Constants.BUFFER_SIZE];
+							int read = 0;
+							long remaining = size;
+							while ((read = this.input.read(buffer, 0, Math.min(buffer.length, (int) remaining))) > 0) {
+								remaining -= read;
+								if (!file.exists()) {
+									fos.write(buffer, 0, read);
+								}
+							}
+							if (!file.exists()) {
+								fos.close();
+							}
+							break;
 						default:
 							throw new MessageException("Invalid message received: " + message);
 						}
 					}
-				} else if (type == 1) {
-					long size = this.input.readLong();
-					String name = this.input.readUTF();
-					File file = new File(FILES_DIRECTORY + name);
-					FileOutputStream fos = new FileOutputStream(file.getAbsolutePath());
-					byte[] buffer = new byte[Constants.BUFFER_SIZE];
-					int read = 0;
-					long remaining = size;
-					while ((read = this.input.read(buffer, 0, Math.min(buffer.length, (int) remaining))) > 0) {
-						remaining -= read;
-						fos.write(buffer, 0, read);
-					}
-					fos.close();
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -90,12 +98,14 @@ public class ClientHandler implements Runnable {
 		File file = new File(FILES_DIRECTORY + name);
 		try (FileInputStream fis = new FileInputStream(file);) {
 			this.output.writeLong(file.length());
+			this.output.flush();
 			this.output.writeUTF(file.getName());
+			this.output.flush();
 			byte[] buffer = new byte[Constants.BUFFER_SIZE];
 			while (fis.read(buffer) > 0) {
 				this.output.write(buffer);
+				this.output.flush();
 			}
-			this.output.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new MessageException("Error while sending file to server.");

@@ -74,8 +74,8 @@ public class Login {
 			}
 		});
 
-		Image imageHome = new Image(getClass().getResourceAsStream("./home.png"), 50, 50, true, false);
-		Button home = new Button("Home", new ImageView(imageHome));
+		Image imageHome = new Image(getClass().getResourceAsStream("./home.png"), 25, 25, true, false);
+		Button home = new Button("", new ImageView(imageHome));
 		root.add(home, 1, 6);
 		home.setOnAction(new EventHandler<ActionEvent>() {
 			@Override

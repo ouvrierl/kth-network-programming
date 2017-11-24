@@ -2,6 +2,7 @@ package server.controller;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
 import common.catalog.CatalogServer;
 import server.integration.Catalog;
@@ -54,6 +55,19 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 		} else {
 			return false;
 		}
+	}
+
+	@Override
+	public boolean addFile(String name, long size, String access) throws RemoteException {
+		if (this.loggedUser == null) {
+			return false;
+		}
+		return this.catalog.addFile(name, size, this.loggedUser, access);
+	}
+
+	@Override
+	public List<Object[]> getFiles() throws RemoteException {
+		return this.catalog.getFiles(this.loggedUser);
 	}
 
 }

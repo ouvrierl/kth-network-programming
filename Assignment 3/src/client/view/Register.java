@@ -59,7 +59,7 @@ public class Register {
 						Scene homeScene = home.getScene();
 						viewManager.getStage().setScene(homeScene);
 					} else {
-						Alert alert = new Alert(AlertType.INFORMATION);
+						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Register failure");
 						alert.setHeaderText(null);
 						alert.setContentText("The username already exists, please choose another one.");

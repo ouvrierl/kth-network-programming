@@ -5,17 +5,26 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import common.constants.Constants;
 import common.exception.DatabaseException;
 import server.model.User;
 
 public class Catalog {
 
-	private static final String TABLE_NAME = "user";
+	private static final String TABLE_NAME_USER = "user";
+	private static final String TABLE_NAME_FILE = "file";
 	private PreparedStatement createAccount;
 	private PreparedStatement checkAccount;
 	private PreparedStatement deleteAccount;
 	private PreparedStatement checkUsername;
+	private PreparedStatement addFile;
+	private PreparedStatement getFile;
+	private PreparedStatement deleteFile;
+	private PreparedStatement updateFile;
+	private PreparedStatement getAllFiles;
 
 	public Catalog() {
 		try {
@@ -32,11 +41,17 @@ public class Catalog {
 	}
 
 	private void prepareStatements(Connection connection) throws SQLException {
-		this.createAccount = connection.prepareStatement("INSERT INTO " + TABLE_NAME + " VALUES (?, ?)");
+		this.createAccount = connection.prepareStatement("INSERT INTO " + TABLE_NAME_USER + " VALUES (?, ?)");
 		this.checkAccount = connection
-				.prepareStatement("SELECT * from " + TABLE_NAME + " WHERE username = ? AND password = ?");
-		this.deleteAccount = connection.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE username = ?");
-		this.checkUsername = connection.prepareStatement("SELECT * from " + TABLE_NAME + " WHERE username = ?");
+				.prepareStatement("SELECT * from " + TABLE_NAME_USER + " WHERE username = ? AND password = ?");
+		this.deleteAccount = connection.prepareStatement("DELETE FROM " + TABLE_NAME_USER + " WHERE username = ?");
+		this.checkUsername = connection.prepareStatement("SELECT * from " + TABLE_NAME_USER + " WHERE username = ?");
+		this.addFile = connection.prepareStatement("INSERT INTO " + TABLE_NAME_FILE + " VALUES (?, ?, ?, ?, ?)");
+		this.getFile = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE + " WHERE name = ?");
+		this.deleteFile = connection.prepareStatement("DELETE FROM " + TABLE_NAME_FILE + " WHERE name = ?");
+		this.updateFile = connection.prepareStatement(
+				"UPDATE " + TABLE_NAME_FILE + " SET size = ?, owner = ?, access = ?, action = ? WHERE name = ?");
+		this.getAllFiles = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE);
 	}
 
 	public boolean isAccount(String username, String password) {
@@ -76,6 +91,26 @@ public class Catalog {
 		}
 	}
 
+	public boolean addFile(String name, long size, User owner, String access) {
+		try {
+			this.getFile.setString(1, name);
+			ResultSet result = this.getFile.executeQuery();
+			if (result.next()) {
+				return false;
+			}
+			this.addFile.setString(1, name);
+			this.addFile.setLong(2, size);
+			this.addFile.setString(3, owner.getUsername());
+			this.addFile.setString(4, access);
+			this.addFile.setString(5, Constants.ACTION_WRITE);
+			int rows = this.addFile.executeUpdate();
+			return rows == 1;
+		} catch (SQLException sqle) {
+			sqle.printStackTrace();
+			throw new DatabaseException("Error while adding file infos in the database.");
+		}
+	}
+
 	public boolean deleteAccount(User user) {
 		try {
 			this.deleteAccount.setString(1, user.getUsername());
@@ -84,6 +119,32 @@ public class Catalog {
 		} catch (SQLException sqle) {
 			throw new DatabaseException("Error while removing account.");
 		}
+	}
+
+	public List<Object[]> getFiles(User user) {
+		List<Object[]> files = new ArrayList<>();
+		ResultSet result = null;
+		try {
+			result = this.getAllFiles.executeQuery();
+			while (result.next()) {
+				Object[] file = new Object[5];
+				file[0] = result.getObject(1);
+				file[1] = result.getObject(2);
+				file[2] = result.getObject(3);
+				file[3] = result.getObject(4);
+				file[4] = result.getObject(5);
+				files.add(file);
+			}
+		} catch (SQLException sqle) {
+			throw new DatabaseException("Error while getting files list.");
+		} finally {
+			try {
+				result.close();
+			} catch (Exception e) {
+				throw new DatabaseException("Error while getting files list.");
+			}
+		}
+		return files;
 	}
 
 }

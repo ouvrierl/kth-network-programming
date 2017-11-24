@@ -59,7 +59,7 @@ public class Login {
 						Scene homeScene = home.getScene();
 						viewManager.getStage().setScene(homeScene);
 					} else {
-						Alert alert = new Alert(AlertType.INFORMATION);
+						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Login failure");
 						alert.setHeaderText(null);
 						alert.setContentText(

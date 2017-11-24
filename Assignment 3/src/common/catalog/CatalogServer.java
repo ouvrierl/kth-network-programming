@@ -2,6 +2,7 @@ package common.catalog;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 public interface CatalogServer extends Remote {
 
@@ -14,5 +15,9 @@ public interface CatalogServer extends Remote {
 	boolean unregister() throws RemoteException;
 
 	boolean logout() throws RemoteException;
+
+	boolean addFile(String name, long size, String access) throws RemoteException;
+
+	List<Object[]> getFiles() throws RemoteException;
 
 }

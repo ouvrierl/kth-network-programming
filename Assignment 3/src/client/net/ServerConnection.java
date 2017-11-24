@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -18,6 +19,11 @@ public class ServerConnection implements Runnable {
 	private DataInputStream input;
 	private DataOutputStream output;
 	private volatile boolean connected = true;
+	private File downloadFile;
+
+	public void setDownloadFile(File downloadFile) {
+		this.downloadFile = downloadFile;
+	}
 
 	public void connect(String host, int port) {
 		try {
@@ -72,12 +78,23 @@ public class ServerConnection implements Runnable {
 	public void run() {
 		try {
 			for (;;) {
-				int messageReceived = this.input.read();
-				System.out.println("Message received by client : " + messageReceived);
+				long size = this.input.readLong();
+				String name = this.input.readUTF();
+				// Check if fill null
+				FileOutputStream fos = new FileOutputStream(this.downloadFile.getAbsolutePath());
+				byte[] buffer = new byte[Constants.BUFFER_SIZE];
+				int read = 0;
+				long remaining = size;
+				while ((read = this.input.read(buffer, 0, Math.min(buffer.length, (int) remaining))) > 0) {
+					remaining -= read;
+					fos.write(buffer, 0, read);
+				}
+				fos.close();
 			}
 		} catch (Exception e) {
 			if (this.connected) {
-				throw new MessageException(e.getMessage());
+				e.printStackTrace();
+				throw new MessageException("Error while receiving message from the server.");
 			}
 		}
 	}

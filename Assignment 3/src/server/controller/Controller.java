@@ -7,11 +7,17 @@ import java.util.List;
 import common.catalog.CatalogServer;
 import server.integration.Catalog;
 import server.model.User;
+import server.net.ClientHandler;
 
 public class Controller extends UnicastRemoteObject implements CatalogServer {
 
 	private final Catalog catalog;
 	private User loggedUser;
+	private ClientHandler clientHandler;
+
+	public void setClientHandler(ClientHandler clientHandler) {
+		this.clientHandler = clientHandler;
+	}
 
 	public Controller() throws RemoteException {
 		super();
@@ -68,6 +74,13 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	@Override
 	public List<Object[]> getFiles() throws RemoteException {
 		return this.catalog.getFiles(this.loggedUser);
+	}
+
+	@Override
+	public boolean downloadFile(String name) throws RemoteException {
+		// Check if file exists for security
+		this.clientHandler.sendFile(name);
+		return true;
 	}
 
 }

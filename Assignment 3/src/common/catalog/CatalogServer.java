@@ -20,4 +20,6 @@ public interface CatalogServer extends Remote {
 
 	List<Object[]> getFiles() throws RemoteException;
 
+	boolean downloadFile(String name) throws RemoteException;
+
 }

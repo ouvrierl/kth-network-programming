@@ -45,61 +45,48 @@ public class ListFiles {
 		Label intro = new Label("List of the files in the catalog");
 		root.add(intro, 0, 0);
 
-		final ObservableList<client.view.File> data = FXCollections.observableArrayList();
+		final ObservableList<client.view.CatalogFile> data = FXCollections.observableArrayList();
 		try {
 			List<Object[]> files = viewManager.getServer().getFiles();
 			for (Object[] file : files) {
-				client.view.File filePrepared = new client.view.File(file[0].toString(), file[1].toString(),
-						file[2].toString(), file[3].toString(), file[4].toString());
+				client.view.CatalogFile filePrepared = new client.view.CatalogFile(file[0].toString(),
+						file[1].toString(), file[2].toString(), file[3].toString(), file[4].toString());
 				data.add(filePrepared);
 			}
 		} catch (RemoteException e) {
 			System.err.println("Error while getting files list.");
 		}
-		TableView<client.view.File> table = new TableView<>();
+		TableView<CatalogFile> table = new TableView<>();
 		table.setEditable(false);
 		TableColumn name = new TableColumn("Name");
-		name.setCellValueFactory(new PropertyValueFactory<client.view.File, String>("name"));
+		name.setCellValueFactory(new PropertyValueFactory<CatalogFile, String>("name"));
 		TableColumn size = new TableColumn("Size");
-		size.setCellValueFactory(new PropertyValueFactory<client.view.File, String>("size"));
+		size.setCellValueFactory(new PropertyValueFactory<CatalogFile, String>("size"));
 		TableColumn owner = new TableColumn("Owner");
-		owner.setCellValueFactory(new PropertyValueFactory<client.view.File, String>("owner"));
+		owner.setCellValueFactory(new PropertyValueFactory<CatalogFile, String>("owner"));
 		TableColumn access = new TableColumn("Access");
-		access.setCellValueFactory(new PropertyValueFactory<client.view.File, String>("access"));
+		access.setCellValueFactory(new PropertyValueFactory<CatalogFile, String>("access"));
 		TableColumn action = new TableColumn("Action");
-		action.setCellValueFactory(new PropertyValueFactory<client.view.File, String>("action"));
+		action.setCellValueFactory(new PropertyValueFactory<CatalogFile, String>("action"));
 		TableColumn download = new TableColumn("Download");
 		download.setCellValueFactory(
-				new Callback<TableColumn.CellDataFeatures<client.view.File, Boolean>, ObservableValue<Boolean>>() {
+				new Callback<TableColumn.CellDataFeatures<CatalogFile, Boolean>, ObservableValue<Boolean>>() {
 					@Override
-					public ObservableValue<Boolean> call(TableColumn.CellDataFeatures<client.view.File, Boolean> p) {
+					public ObservableValue<Boolean> call(TableColumn.CellDataFeatures<CatalogFile, Boolean> p) {
 						return new SimpleBooleanProperty(p.getValue() != null);
 					}
 				});
-		download.setCellFactory(
-				new Callback<TableColumn<client.view.File, Boolean>, TableCell<client.view.File, Boolean>>() {
-					@Override
-					public TableCell<client.view.File, Boolean> call(TableColumn<client.view.File, Boolean> p) {
-						return new Download();
-					}
+		download.setCellFactory(new Callback<TableColumn<CatalogFile, Boolean>, TableCell<CatalogFile, Boolean>>() {
+			@Override
+			public TableCell<CatalogFile, Boolean> call(TableColumn<CatalogFile, Boolean> p) {
+				return new Download(viewManager);
+			}
 
-				});
+		});
 		table.setItems(data);
 		table.getColumns().addAll(name, size, owner, access, action, download);
 		table.setMinWidth(700);
 		root.add(table, 0, 2);
-
-		Image imageHome = new Image(getClass().getResourceAsStream("./home.png"), 25, 25, true, false);
-		Button home = new Button("", new ImageView(imageHome));
-		root.add(home, 0, 5);
-		home.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent e) {
-				Home home = new Home(viewManager);
-				Scene homeScene = home.getScene();
-				viewManager.getStage().setScene(homeScene);
-			}
-		});
 
 		Button addFile = new Button("Add a file to the catalog");
 		root.add(addFile, 0, 3);
@@ -145,6 +132,18 @@ public class ListFiles {
 					exception.printStackTrace();
 					System.err.println("File adding to the catalog failed.");
 				}
+			}
+		});
+
+		Image imageHome = new Image(getClass().getResourceAsStream("./home.png"), 25, 25, true, false);
+		Button home = new Button("", new ImageView(imageHome));
+		root.add(home, 0, 5);
+		home.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				Home home = new Home(viewManager);
+				Scene homeScene = home.getScene();
+				viewManager.getStage().setScene(homeScene);
 			}
 		});
 

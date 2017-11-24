@@ -11,6 +11,10 @@ public class Controller {
 		this.serverConnection = new ServerConnection();
 	}
 
+	public ServerConnection getServerConnection() {
+		return this.serverConnection;
+	}
+
 	public void connect(String host, int port) {
 		this.serverConnection.connect(host, port);
 	}

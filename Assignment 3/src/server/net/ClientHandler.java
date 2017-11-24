@@ -3,6 +3,7 @@ package server.net;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.Socket;
 
@@ -62,7 +63,7 @@ public class ClientHandler implements Runnable {
 			} catch (Exception e) {
 				e.printStackTrace();
 				this.quit();
-				throw new MessageException(e.getMessage());
+				throw new MessageException("Error while receiving message from the client.");
 			}
 		}
 	}
@@ -82,6 +83,22 @@ public class ClientHandler implements Runnable {
 			this.output.flush();
 		} catch (Exception e) {
 			throw new MessageException("Error while sending message to server.");
+		}
+	}
+
+	public void sendFile(String name) {
+		File file = new File(FILES_DIRECTORY + name);
+		try (FileInputStream fis = new FileInputStream(file);) {
+			this.output.writeLong(file.length());
+			this.output.writeUTF(file.getName());
+			byte[] buffer = new byte[Constants.BUFFER_SIZE];
+			while (fis.read(buffer) > 0) {
+				this.output.write(buffer);
+			}
+			this.output.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new MessageException("Error while sending file to server.");
 		}
 	}
 

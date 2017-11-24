@@ -2,7 +2,7 @@ package client.view;
 
 import javafx.beans.property.SimpleStringProperty;
 
-public class File {
+public class CatalogFile {
 
 	private final SimpleStringProperty name;
 	private final SimpleStringProperty size;
@@ -10,7 +10,7 @@ public class File {
 	private final SimpleStringProperty access;
 	private final SimpleStringProperty action;
 
-	public File(String name, String size, String owner, String access, String action) {
+	public CatalogFile(String name, String size, String owner, String access, String action) {
 		this.name = new SimpleStringProperty(name);
 		this.size = new SimpleStringProperty(size);
 		this.owner = new SimpleStringProperty(owner);

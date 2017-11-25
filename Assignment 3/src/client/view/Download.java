@@ -36,6 +36,7 @@ public class Download extends TableCell<CatalogFile, Boolean> {
 					viewManager.getController().getServerConnection().setDownloadFile(fileToDownload);
 					viewManager.getServer().downloadFile(fileName);
 				} catch (RemoteException e) {
+					e.printStackTrace();
 					System.err.println("Error while trying to download file.");
 				}
 			}

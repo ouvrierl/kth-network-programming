@@ -29,7 +29,7 @@ public class ServerConnection implements Runnable {
 		try {
 			this.socket = new Socket();
 			this.socket.connect(new InetSocketAddress(host, port));
-			this.input = new DataInputStream(socket.getInputStream());
+			this.input = new DataInputStream(this.socket.getInputStream());
 			this.output = new DataOutputStream(this.socket.getOutputStream());
 			new Thread(this).start();
 		} catch (Exception e) {
@@ -53,21 +53,21 @@ public class ServerConnection implements Runnable {
 			this.output.writeUTF(message);
 			this.output.flush();
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new MessageException("Error while sending message to server.");
 		}
 	}
 
 	public void sendFile(File file) {
-		try (FileInputStream fis = new FileInputStream(file);) {
+		try (FileInputStream inf = new FileInputStream(file);) {
 			this.output.writeUTF(Constants.FILE);
-			this.output.flush();
-			this.output.writeLong(file.length());
 			this.output.flush();
 			this.output.writeUTF(file.getName());
 			this.output.flush();
-			byte[] buffer = new byte[Constants.BUFFER_SIZE];
-			while (fis.read(buffer) > 0) {
-				this.output.write(buffer);
+			byte buffer[] = new byte[Constants.BUFFER_SIZE];
+			int n;
+			while ((n = inf.read(buffer)) != -1) {
+				this.output.write(buffer, 0, n);
 				this.output.flush();
 			}
 		} catch (Exception e) {
@@ -80,18 +80,22 @@ public class ServerConnection implements Runnable {
 	public void run() {
 		try {
 			for (;;) {
-				long size = this.input.readLong();
-				String name = this.input.readUTF();
-				// Check if fill null
-				FileOutputStream fos = new FileOutputStream(this.downloadFile.getAbsolutePath());
-				byte[] buffer = new byte[Constants.BUFFER_SIZE];
-				int read = 0;
-				long remaining = size;
-				while ((read = this.input.read(buffer, 0, Math.min(buffer.length, (int) remaining))) > 0) {
-					remaining -= read;
-					fos.write(buffer, 0, read);
+				String message = this.input.readUTF();
+				System.out.println("Message : " + message);
+				switch (message) {
+				case Constants.FILE:
+					try (FileOutputStream out = new FileOutputStream(this.downloadFile);) {
+						byte buffer[] = new byte[Constants.BUFFER_SIZE];
+						long bytesRead;
+						do {
+							bytesRead = this.input.read(buffer, 0, buffer.length);
+							out.write(buffer, 0, buffer.length);
+						} while (!(bytesRead < Constants.BUFFER_SIZE));
+					}
+					break;
+				default:
+					throw new MessageException("Invalid message received: " + message);
 				}
-				fos.close();
 			}
 		} catch (Exception e) {
 			if (this.connected) {

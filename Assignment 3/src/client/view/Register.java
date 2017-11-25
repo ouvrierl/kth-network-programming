@@ -63,7 +63,8 @@ public class Register {
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Register failure");
 						alert.setHeaderText(null);
-						alert.setContentText("The username/password is empty or the username already exists, please choose another one.");
+						alert.setContentText(
+								"The username/password is empty or the username already exists, please choose another one.");
 						alert.showAndWait();
 						usernameValue.setText("");
 						passwordValue.setText("");

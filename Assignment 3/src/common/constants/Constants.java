@@ -17,6 +17,6 @@ public class Constants {
 	public static final String ACTION_READ = "read";
 	public static final String ACTION_WRITE = "write";
 
-	public static final int BUFFER_SIZE = 4096;
+	public static final int BUFFER_SIZE = 1024;
 
 }

@@ -30,42 +30,33 @@ public class ClientHandler implements Runnable {
 			this.input = new DataInputStream(this.clientSocket.getInputStream());
 			this.output = new DataOutputStream(this.clientSocket.getOutputStream());
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new ConnectionException("Error during the server connection");
 		}
 		while (this.connected) {
 			try {
-				int type = this.input.read();
-				if (type == 0) {
-					String message = this.input.readUTF();
-					if (message != null && !message.equals("")) {
-						switch (message) {
-						case Constants.QUIT:
-							this.quit();
-							break;
-						case Constants.FILE:
-							long size = this.input.readLong();
-							String name = this.input.readUTF();
-							File file = new File(FILES_DIRECTORY + name);
-							FileOutputStream fos = null;
-							if (!file.exists()) {
-								fos = new FileOutputStream(file.getAbsolutePath());
-							}
-							byte[] buffer = new byte[Constants.BUFFER_SIZE];
-							int read = 0;
-							long remaining = size;
-							while ((read = this.input.read(buffer, 0, Math.min(buffer.length, (int) remaining))) > 0) {
-								remaining -= read;
-								if (!file.exists()) {
-									fos.write(buffer, 0, read);
-								}
-							}
-							if (!file.exists()) {
-								fos.close();
-							}
-							break;
-						default:
-							throw new MessageException("Invalid message received: " + message);
+				String message = this.input.readUTF();
+				System.out.println("Message : " + message);
+				if (message != null && !message.equals("")) {
+					switch (message) {
+					case Constants.QUIT:
+						this.quit();
+						break;
+					case Constants.FILE:
+						String name = this.input.readUTF();
+						System.out.println("File name : " + name);
+						File file = new File(FILES_DIRECTORY + name);
+						try (FileOutputStream out = new FileOutputStream(file);) {
+							byte buffer[] = new byte[Constants.BUFFER_SIZE];
+							long bytesRead;
+							do {
+								bytesRead = this.input.read(buffer, 0, buffer.length);
+								out.write(buffer, 0, buffer.length);
+							} while (!(bytesRead < Constants.BUFFER_SIZE));
 						}
+						break;
+					default:
+						throw new MessageException("Invalid message received: " + message);
 					}
 				}
 			} catch (Exception e) {
@@ -85,30 +76,19 @@ public class ClientHandler implements Runnable {
 		this.connected = false;
 	}
 
-	private void sendMessage(String message) {
-		try {
-			this.output.writeUTF(message);
-			this.output.flush();
-		} catch (Exception e) {
-			throw new MessageException("Error while sending message to server.");
-		}
-	}
-
 	public void sendFile(String name) {
 		File file = new File(FILES_DIRECTORY + name);
-		try (FileInputStream fis = new FileInputStream(file);) {
-			this.output.writeLong(file.length());
+		try (FileInputStream inf = new FileInputStream(file);) {
+			this.output.writeUTF(Constants.FILE);
 			this.output.flush();
-			this.output.writeUTF(file.getName());
-			this.output.flush();
-			byte[] buffer = new byte[Constants.BUFFER_SIZE];
-			while (fis.read(buffer) > 0) {
-				this.output.write(buffer);
+			byte buffer[] = new byte[Constants.BUFFER_SIZE];
+			int n;
+			while ((n = inf.read(buffer)) != -1) {
+				this.output.write(buffer, 0, n);
 				this.output.flush();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new MessageException("Error while sending file to server.");
+			throw new MessageException("Error while server sending file.");
 		}
 	}
 

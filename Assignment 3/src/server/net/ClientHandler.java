@@ -14,7 +14,7 @@ import common.exception.MessageException;
 
 public class ClientHandler implements Runnable {
 
-	private static final String FILES_DIRECTORY = "./files/";
+	public static final String FILES_DIRECTORY = "./files/";
 	private final Socket clientSocket;
 	private DataInputStream input;
 	private DataOutputStream output;

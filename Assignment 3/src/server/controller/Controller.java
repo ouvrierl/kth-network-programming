@@ -1,5 +1,6 @@
 package server.controller;
 
+import java.io.File;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
@@ -81,6 +82,14 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 		// Check if file exists for security
 		this.clientHandler.sendFile(name);
 		return true;
+	}
+
+	@Override
+	public boolean removeFile(String name) throws RemoteException {
+		File fileToDelete = new File(ClientHandler.FILES_DIRECTORY + name);
+		boolean fileDeleted = fileToDelete.delete();
+		boolean dataDeleted = this.catalog.deleteFile(name);
+		return fileDeleted && dataDeleted;
 	}
 
 }

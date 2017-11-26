@@ -136,8 +136,8 @@ public class ListFiles {
 						access = result.get();
 					}
 					if (file != null && access != null) {
-						viewManager.getController().sendFile(file);
 						if (viewManager.getServer().addFile(file.getName(), file.length(), access)) {
+							viewManager.getController().sendFile(file);
 							Alert alert = new Alert(AlertType.INFORMATION);
 							alert.setTitle("Upload success");
 							alert.setHeaderText(null);

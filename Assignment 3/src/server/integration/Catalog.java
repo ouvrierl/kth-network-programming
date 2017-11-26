@@ -37,7 +37,7 @@ public class Catalog {
 
 	private Connection connection() throws ClassNotFoundException, SQLException, DatabaseException {
 		Class.forName("com.mysql.jdbc.Driver");
-		return DriverManager.getConnection("jdbc:mysql://localhost:3307/catalog", "root", "");
+		return DriverManager.getConnection("jdbc:mysql://localhost:3307/catalog?characterEncoding=utf8", "root", "");
 	}
 
 	private void prepareStatements(Connection connection) throws SQLException {
@@ -118,6 +118,16 @@ public class Catalog {
 			return rows == 1;
 		} catch (SQLException sqle) {
 			throw new DatabaseException("Error while removing account.");
+		}
+	}
+
+	public boolean deleteFile(String fileName) {
+		try {
+			this.deleteFile.setString(1, fileName);
+			int rows = this.deleteFile.executeUpdate();
+			return rows == 1;
+		} catch (SQLException sqle) {
+			throw new DatabaseException("Error while removing file.");
 		}
 	}
 

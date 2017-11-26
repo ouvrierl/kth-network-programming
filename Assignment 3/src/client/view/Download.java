@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
@@ -34,7 +36,19 @@ public class Download extends TableCell<CatalogFile, Boolean> {
 					fileChooser.setInitialFileName(fileName);
 					File fileToDownload = fileChooser.showSaveDialog(viewManager.getStage());
 					viewManager.getController().getServerConnection().setDownloadFile(fileToDownload);
-					viewManager.getServer().downloadFile(fileName);
+					if (viewManager.getServer().downloadFile(fileName)) {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setTitle("Download success");
+						alert.setHeaderText(null);
+						alert.setContentText("The file has been downloaded from the server.");
+						alert.showAndWait();
+					} else {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Download failure");
+						alert.setHeaderText(null);
+						alert.setContentText("Impossible to download the file from the server, please try again.");
+						alert.showAndWait();
+					}
 				} catch (RemoteException e) {
 					e.printStackTrace();
 					System.err.println("Error while trying to download file.");

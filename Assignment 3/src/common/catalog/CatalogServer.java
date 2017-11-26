@@ -22,4 +22,6 @@ public interface CatalogServer extends Remote {
 
 	boolean downloadFile(String name) throws RemoteException;
 
+	boolean removeFile(String name) throws RemoteException;
+
 }

@@ -187,4 +187,26 @@ public class Catalog {
 		return files;
 	}
 
+	public boolean updateFile(String fileName, User user) {
+		try {
+			this.getFile.setString(1, fileName);
+			ResultSet result = this.getFile.executeQuery();
+			if (result.next()) {
+				String owner = result.getObject(3).toString();
+				String access = result.getObject(4).toString();
+				Object action = result.getObject(5);
+				if (access.equals(Constants.ACCESS_PUBLIC) && action.toString().equals(Constants.ACTION_READ)
+						&& !owner.equals(user.getUsername())) {
+					return false;
+				} else {
+					return true;
+				}
+			} else {
+				return false;
+			}
+		} catch (SQLException sqle) {
+			throw new DatabaseException("Error while updating file.");
+		}
+	}
+
 }

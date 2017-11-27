@@ -153,7 +153,7 @@ public class ListFiles {
 					}
 					if (file != null && accessValue != null && actionValid) {
 						if (viewManager.getServer().addFile(file.getName(), file.length(), accessValue, actionValue)) {
-							viewManager.getController().sendFile(file);
+							viewManager.getController().sendFile(file, file.getName());
 							Alert alert = new Alert(AlertType.INFORMATION);
 							alert.setTitle("Upload success");
 							alert.setHeaderText(null);

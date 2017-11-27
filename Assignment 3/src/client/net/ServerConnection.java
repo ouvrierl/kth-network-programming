@@ -58,11 +58,11 @@ public class ServerConnection implements Runnable {
 		}
 	}
 
-	public void sendFile(File file) {
+	public void sendFile(File file, String outputName) {
 		try (FileInputStream inf = new FileInputStream(file);) {
 			this.output.writeUTF(Constants.FILE);
 			this.output.flush();
-			this.output.writeUTF(file.getName());
+			this.output.writeUTF(outputName);
 			this.output.flush();
 			byte buffer[] = new byte[Constants.BUFFER_SIZE];
 			int n;

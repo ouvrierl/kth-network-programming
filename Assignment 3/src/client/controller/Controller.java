@@ -27,7 +27,7 @@ public class Controller {
 		this.serverConnection.sendMessage(message);
 	}
 
-	public void sendFile(File file) {
-		this.serverConnection.sendFile(file);
+	public void sendFile(File file, String outputName) {
+		this.serverConnection.sendFile(file, outputName);
 	}
 }

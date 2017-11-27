@@ -99,4 +99,9 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 		return fileDeleted && dataDeleted;
 	}
 
+	@Override
+	public boolean updateFile(String fileName) throws RemoteException {
+		return this.catalog.updateFile(fileName, this.loggedUser);
+	}
+
 }

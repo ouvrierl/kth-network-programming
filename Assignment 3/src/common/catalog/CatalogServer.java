@@ -24,6 +24,6 @@ public interface CatalogServer extends Remote {
 
 	boolean removeFile(String fileName) throws RemoteException;
 
-	boolean updateFile(String fileName, long length) throws RemoteException;
+	boolean updateFile(String fileName, long length, String access, String action) throws RemoteException;
 
 }

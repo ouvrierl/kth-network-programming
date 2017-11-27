@@ -54,7 +54,8 @@ public class Catalog {
 		this.getFile = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE + " WHERE name = ?");
 		this.getOwnerFiles = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE + " WHERE owner = ?");
 		this.deleteFile = connection.prepareStatement("DELETE FROM " + TABLE_NAME_FILE + " WHERE name = ?");
-		this.updateFile = connection.prepareStatement("UPDATE " + TABLE_NAME_FILE + " SET size = ? WHERE name = ?");
+		this.updateFile = connection
+				.prepareStatement("UPDATE " + TABLE_NAME_FILE + " SET size = ?, access = ?, action = ? WHERE name = ?");
 		this.getAllFiles = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE);
 	}
 
@@ -186,20 +187,22 @@ public class Catalog {
 		return files;
 	}
 
-	public boolean updateFile(String fileName, long length, User user) {
+	public boolean updateFile(String fileName, long length, User user, String access, String action) {
 		try {
 			this.getFile.setString(1, fileName);
 			ResultSet result = this.getFile.executeQuery();
 			if (result.next()) {
 				String owner = result.getObject(3).toString();
-				String access = result.getObject(4).toString();
-				Object action = result.getObject(5);
-				if (access.equals(Constants.ACCESS_PUBLIC) && action.toString().equals(Constants.ACTION_READ)
+				String accessValue = result.getObject(4).toString();
+				Object actionValue = result.getObject(5);
+				if (accessValue.equals(Constants.ACCESS_PUBLIC) && actionValue.toString().equals(Constants.ACTION_READ)
 						&& !owner.equals(user.getUsername())) {
 					return false;
 				} else {
 					this.updateFile.setLong(1, length);
-					this.updateFile.setString(2, fileName);
+					this.updateFile.setString(2, access);
+					this.updateFile.setString(3, action);
+					this.updateFile.setString(4, fileName);
 					int rows = this.updateFile.executeUpdate();
 					return rows == 1;
 				}

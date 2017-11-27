@@ -100,8 +100,8 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	}
 
 	@Override
-	public boolean updateFile(String fileName, long length) throws RemoteException {
-		return this.catalog.updateFile(fileName, length, this.loggedUser);
+	public boolean updateFile(String fileName, long length, String access, String action) throws RemoteException {
+		return this.catalog.updateFile(fileName, length, this.loggedUser, access, action);
 	}
 
 }

@@ -136,8 +136,9 @@ public class ListFiles {
 							accessValue = result.get();
 						}
 					}
-					boolean actionValid = false;
+					boolean actionValid = true;
 					if (accessValue != null && accessValue.equals(Constants.ACCESS_PUBLIC)) {
+						actionValid = false;
 						List<String> dialogData = new ArrayList<>();
 						dialogData.add(Constants.ACTION_READ);
 						dialogData.add(Constants.ACTION_WRITE);

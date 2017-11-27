@@ -1,5 +1,6 @@
 package server.integration;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,7 +11,9 @@ import java.util.List;
 
 import common.constants.Constants;
 import common.exception.DatabaseException;
+import common.exception.IOException;
 import server.model.User;
+import server.net.ClientHandler;
 
 public class Catalog {
 
@@ -23,6 +26,7 @@ public class Catalog {
 	private PreparedStatement addFile;
 	private PreparedStatement getFile;
 	private PreparedStatement deleteFile;
+	private PreparedStatement getOwnerFiles;
 	private PreparedStatement updateFile;
 	private PreparedStatement getAllFiles;
 
@@ -48,6 +52,7 @@ public class Catalog {
 		this.checkUsername = connection.prepareStatement("SELECT * from " + TABLE_NAME_USER + " WHERE username = ?");
 		this.addFile = connection.prepareStatement("INSERT INTO " + TABLE_NAME_FILE + " VALUES (?, ?, ?, ?, ?)");
 		this.getFile = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE + " WHERE name = ?");
+		this.getOwnerFiles = connection.prepareStatement("SELECT * from " + TABLE_NAME_FILE + " WHERE owner = ?");
 		this.deleteFile = connection.prepareStatement("DELETE FROM " + TABLE_NAME_FILE + " WHERE name = ?");
 		this.updateFile = connection.prepareStatement(
 				"UPDATE " + TABLE_NAME_FILE + " SET size = ?, owner = ?, access = ?, action = ? WHERE name = ?");
@@ -113,6 +118,15 @@ public class Catalog {
 
 	public boolean deleteAccount(User user) {
 		try {
+			this.getOwnerFiles.setString(1, user.getUsername());
+			ResultSet result = this.getOwnerFiles.executeQuery();
+			while (result.next()) {
+				String fileName = result.getObject(1).toString();
+				File fileToDelete = new File(ClientHandler.FILES_DIRECTORY + fileName);
+				if (!fileToDelete.delete()) {
+					throw new IOException("Error while deleting the user's files.");
+				}
+			}
 			this.deleteAccount.setString(1, user.getUsername());
 			int rows = this.deleteAccount.executeUpdate();
 			return rows == 1;

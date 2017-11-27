@@ -1,7 +1,6 @@
 package client.view;
 
 import java.io.File;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +34,7 @@ public class ListFiles {
 
 	private Scene scene;
 
-	public ListFiles(ViewManager viewManager) {
+	public ListFiles(ViewManager viewManager, List<Object[]> files) {
 		GridPane root = new GridPane();
 		root.setAlignment(Pos.CENTER);
 		root.setHgap(10);
@@ -46,15 +45,14 @@ public class ListFiles {
 		root.add(intro, 0, 0);
 
 		final ObservableList<client.view.CatalogFile> data = FXCollections.observableArrayList();
-		try {
-			List<Object[]> files = viewManager.getServer().getFiles();
-			for (Object[] file : files) {
-				client.view.CatalogFile filePrepared = new client.view.CatalogFile(file[0].toString(),
-						file[1].toString(), file[2].toString(), file[3].toString(), file[4].toString());
-				data.add(filePrepared);
+		for (Object[] file : files) {
+			String actionPerm = "";
+			if (file[4] != null) {
+				actionPerm = file[4].toString();
 			}
-		} catch (RemoteException e) {
-			System.err.println("Error while getting files list.");
+			client.view.CatalogFile filePrepared = new client.view.CatalogFile(file[0].toString(), file[1].toString(),
+					file[2].toString(), file[3].toString(), actionPerm);
+			data.add(filePrepared);
 		}
 		TableView<CatalogFile> table = new TableView<>();
 		table.setEditable(false);
@@ -124,26 +122,42 @@ public class ListFiles {
 					FileChooser fileChooser = new FileChooser();
 					fileChooser.setTitle("Choose the file to add to the catalog.");
 					File file = fileChooser.showOpenDialog(viewManager.getStage());
-					List<String> dialogData = new ArrayList<>();
-					dialogData.add(Constants.ACCESS_PUBLIC);
-					dialogData.add(Constants.ACCESS_PRIVATE);
-					ChoiceDialog dialog = new ChoiceDialog(dialogData.get(0), dialogData);
-					dialog.setTitle("Access permission");
-					dialog.setHeaderText("Select the access permission.");
-					Optional<String> result = dialog.showAndWait();
-					String access = null;
-					if (result.isPresent()) {
-						access = result.get();
+					String accessValue = null;
+					String actionValue = null;
+					if (file != null) {
+						List<String> dialogData = new ArrayList<>();
+						dialogData.add(Constants.ACCESS_PUBLIC);
+						dialogData.add(Constants.ACCESS_PRIVATE);
+						ChoiceDialog dialog = new ChoiceDialog(dialogData.get(0), dialogData);
+						dialog.setTitle("Access permission");
+						dialog.setHeaderText("Select the access permission.");
+						Optional<String> result = dialog.showAndWait();
+						if (result.isPresent()) {
+							accessValue = result.get();
+						}
 					}
-					if (file != null && access != null) {
-						if (viewManager.getServer().addFile(file.getName(), file.length(), access)) {
+					if (accessValue != null && accessValue.equals(Constants.ACCESS_PUBLIC)) {
+						List<String> dialogData = new ArrayList<>();
+						dialogData.add(Constants.ACTION_READ);
+						dialogData.add(Constants.ACTION_WRITE);
+						ChoiceDialog dialog = new ChoiceDialog(dialogData.get(0), dialogData);
+						dialog.setTitle("Action permission");
+						dialog.setHeaderText("Select the action permission for the other users.");
+						Optional<String> result = dialog.showAndWait();
+						if (result.isPresent()) {
+							actionValue = result.get();
+						}
+					}
+					if (file != null && accessValue != null) {
+						if (viewManager.getServer().addFile(file.getName(), file.length(), accessValue, actionValue)) {
 							viewManager.getController().sendFile(file);
 							Alert alert = new Alert(AlertType.INFORMATION);
 							alert.setTitle("Upload success");
 							alert.setHeaderText(null);
 							alert.setContentText("The file has been added to the catalog.");
 							alert.showAndWait();
-							ListFiles listUpdated = new ListFiles(viewManager);
+							List<Object[]> filesList = viewManager.getServer().getFiles();
+							ListFiles listUpdated = new ListFiles(viewManager, filesList);
 							Scene sceneUpdated = listUpdated.getScene();
 							viewManager.getStage().setScene(sceneUpdated);
 						} else {

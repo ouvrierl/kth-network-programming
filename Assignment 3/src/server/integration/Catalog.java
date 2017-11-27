@@ -91,7 +91,7 @@ public class Catalog {
 		}
 	}
 
-	public boolean addFile(String name, long size, User owner, String access) {
+	public boolean addFile(String name, long size, User owner, String access, String action) {
 		try {
 			this.getFile.setString(1, name);
 			ResultSet result = this.getFile.executeQuery();
@@ -102,7 +102,7 @@ public class Catalog {
 			this.addFile.setLong(2, size);
 			this.addFile.setString(3, owner.getUsername());
 			this.addFile.setString(4, access);
-			this.addFile.setString(5, Constants.ACTION_WRITE);
+			this.addFile.setString(5, action);
 			int rows = this.addFile.executeUpdate();
 			return rows == 1;
 		} catch (SQLException sqle) {
@@ -121,8 +121,19 @@ public class Catalog {
 		}
 	}
 
-	public boolean deleteFile(String fileName) {
+	public boolean deleteFile(String fileName, User user) {
 		try {
+			this.getFile.setString(1, fileName);
+			ResultSet result = this.getFile.executeQuery();
+			if (result.next()) {
+				String owner = result.getObject(3).toString();
+				String action = result.getObject(5).toString();
+				if (action.equals(Constants.ACTION_READ) && !owner.equals(user.getUsername())) {
+					return false;
+				}
+			} else {
+				return false;
+			}
 			this.deleteFile.setString(1, fileName);
 			int rows = this.deleteFile.executeUpdate();
 			return rows == 1;
@@ -143,7 +154,10 @@ public class Catalog {
 				file[2] = result.getObject(3);
 				file[3] = result.getObject(4);
 				file[4] = result.getObject(5);
-				files.add(file);
+				if (!(file[3].toString().equals(Constants.ACCESS_PRIVATE)
+						&& !file[2].toString().equals(user.getUsername()))) {
+					files.add(file);
+				}
 			}
 		} catch (SQLException sqle) {
 			throw new DatabaseException("Error while getting files list.");

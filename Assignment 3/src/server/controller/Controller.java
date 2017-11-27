@@ -65,16 +65,20 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	}
 
 	@Override
-	public boolean addFile(String name, long size, String access) throws RemoteException {
+	public boolean addFile(String name, long size, String access, String action) throws RemoteException {
 		if (this.loggedUser == null) {
 			return false;
 		}
-		return this.catalog.addFile(name, size, this.loggedUser, access);
+		return this.catalog.addFile(name, size, this.loggedUser, access, action);
 	}
 
 	@Override
 	public List<Object[]> getFiles() throws RemoteException {
-		return this.catalog.getFiles(this.loggedUser);
+		if (this.loggedUser == null) {
+			return null;
+		} else {
+			return this.catalog.getFiles(this.loggedUser);
+		}
 	}
 
 	@Override
@@ -86,9 +90,12 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 
 	@Override
 	public boolean removeFile(String name) throws RemoteException {
-		File fileToDelete = new File(ClientHandler.FILES_DIRECTORY + name);
-		boolean fileDeleted = fileToDelete.delete();
-		boolean dataDeleted = this.catalog.deleteFile(name);
+		boolean dataDeleted = this.catalog.deleteFile(name, this.loggedUser);
+		boolean fileDeleted = false;
+		if (dataDeleted) {
+			File fileToDelete = new File(ClientHandler.FILES_DIRECTORY + name);
+			fileDeleted = fileToDelete.delete();
+		}
 		return fileDeleted && dataDeleted;
 	}
 

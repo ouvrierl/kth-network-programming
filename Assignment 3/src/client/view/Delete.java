@@ -1,5 +1,7 @@
 package client.view;
 
+import java.util.List;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -34,14 +36,16 @@ public class Delete extends TableCell<CatalogFile, Boolean> {
 						alert.setHeaderText(null);
 						alert.setContentText("The file has been deleted on the server.");
 						alert.showAndWait();
-						ListFiles listUpdated = new ListFiles(viewManager);
+						List<Object[]> filesList = viewManager.getServer().getFiles();
+						ListFiles listUpdated = new ListFiles(viewManager, filesList);
 						Scene sceneUpdated = listUpdated.getScene();
 						viewManager.getStage().setScene(sceneUpdated);
 					} else {
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Delete failure");
 						alert.setHeaderText(null);
-						alert.setContentText("Impossible to delete the file on the server, please try again.");
+						alert.setContentText(
+								"Impossible to delete the file on the server, please make sure you have the rights and try again.");
 						alert.showAndWait();
 					}
 				} catch (Exception e) {

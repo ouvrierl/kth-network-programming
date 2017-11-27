@@ -1,5 +1,7 @@
 package client.view;
 
+import java.util.List;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -103,9 +105,24 @@ public class Home {
 		listFiles.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				ListFiles files = new ListFiles(viewManager);
-				Scene sceneFiles = files.getScene();
-				viewManager.getStage().setScene(sceneFiles);
+				try {
+					List<Object[]> filesList = viewManager.getServer().getFiles();
+					if (filesList == null) {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Access catalog failure");
+						alert.setHeaderText(null);
+						alert.setContentText(
+								"Impossible to access the catalog, make sure you are logged and try again.");
+						alert.showAndWait();
+					} else {
+						ListFiles files = new ListFiles(viewManager, filesList);
+						Scene sceneFiles = files.getScene();
+						viewManager.getStage().setScene(sceneFiles);
+					}
+				} catch (Exception exception) {
+					System.err.println("Error while getting file list of the catalog.");
+				}
+
 			}
 		});
 

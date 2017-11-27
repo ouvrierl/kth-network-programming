@@ -16,7 +16,7 @@ public interface CatalogServer extends Remote {
 
 	boolean logout() throws RemoteException;
 
-	boolean addFile(String name, long size, String access) throws RemoteException;
+	boolean addFile(String name, long size, String access, String action) throws RemoteException;
 
 	List<Object[]> getFiles() throws RemoteException;
 

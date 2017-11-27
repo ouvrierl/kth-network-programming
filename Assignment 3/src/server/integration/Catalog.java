@@ -127,8 +127,10 @@ public class Catalog {
 			ResultSet result = this.getFile.executeQuery();
 			if (result.next()) {
 				String owner = result.getObject(3).toString();
-				String action = result.getObject(5).toString();
-				if (action.equals(Constants.ACTION_READ) && !owner.equals(user.getUsername())) {
+				String access = result.getObject(4).toString();
+				Object action = result.getObject(5);
+				if (access.equals(Constants.ACCESS_PUBLIC) && action.toString().equals(Constants.ACTION_READ)
+						&& !owner.equals(user.getUsername())) {
 					return false;
 				}
 			} else {

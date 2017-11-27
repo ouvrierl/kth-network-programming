@@ -36,7 +36,7 @@ public class Update extends TableCell<CatalogFile, Boolean> {
 					fileChooser.setTitle("Choose the file to update to the catalog.");
 					File fileToUpdate = fileChooser.showOpenDialog(viewManager.getStage());
 					if (fileToUpdate != null) {
-						if (viewManager.getServer().updateFile(fileName)) {
+						if (viewManager.getServer().updateFile(fileName, fileToUpdate.length())) {
 							viewManager.getController().sendFile(fileToUpdate, fileName);
 							Alert alert = new Alert(AlertType.INFORMATION);
 							alert.setTitle("Update success");

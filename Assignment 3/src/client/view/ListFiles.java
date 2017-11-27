@@ -110,7 +110,7 @@ public class ListFiles {
 		});
 		table.setItems(data);
 		table.getColumns().addAll(name, size, owner, access, action, download, update, delete);
-		table.setMinWidth(800);
+		table.setMinWidth(950);
 		root.add(table, 0, 2);
 
 		Button addFile = new Button("Add a file to the catalog");
@@ -191,7 +191,7 @@ public class ListFiles {
 			}
 		});
 
-		this.scene = new Scene(root, 850, 600);
+		this.scene = new Scene(root, 1000, 600);
 		this.scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
 	}

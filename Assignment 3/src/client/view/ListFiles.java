@@ -136,6 +136,7 @@ public class ListFiles {
 							accessValue = result.get();
 						}
 					}
+					boolean actionValid = false;
 					if (accessValue != null && accessValue.equals(Constants.ACCESS_PUBLIC)) {
 						List<String> dialogData = new ArrayList<>();
 						dialogData.add(Constants.ACTION_READ);
@@ -146,9 +147,10 @@ public class ListFiles {
 						Optional<String> result = dialog.showAndWait();
 						if (result.isPresent()) {
 							actionValue = result.get();
+							actionValid = true;
 						}
 					}
-					if (file != null && accessValue != null) {
+					if (file != null && accessValue != null && actionValid) {
 						if (viewManager.getServer().addFile(file.getName(), file.length(), accessValue, actionValue)) {
 							viewManager.getController().sendFile(file);
 							Alert alert = new Alert(AlertType.INFORMATION);

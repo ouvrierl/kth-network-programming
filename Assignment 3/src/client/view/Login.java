@@ -49,7 +49,7 @@ public class Login {
 				try {
 					String username = usernameValue.getText();
 					String password = passwordValue.getText();
-					if (viewManager.getServer().login(username, password)) {
+					if (viewManager.getServer().login(viewManager.getServerReader(), username, password)) {
 						Alert alert = new Alert(AlertType.INFORMATION);
 						alert.setTitle("Login success");
 						alert.setHeaderText(null);
@@ -63,7 +63,7 @@ public class Login {
 						alert.setTitle("Login failure");
 						alert.setHeaderText(null);
 						alert.setContentText(
-								"Wrong username or password, please try again.\nYou must register before login.");
+								"Impossible to login.\nMake sure the username and password are correct, and try again.\nBeware that you must register before login.\nMake sure you are not already logged and that this account isn't accessed by another client.");
 						alert.showAndWait();
 						usernameValue.setText("");
 						passwordValue.setText("");

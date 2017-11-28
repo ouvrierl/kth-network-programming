@@ -22,9 +22,11 @@ public class Main implements Runnable {
 			Main main = new Main();
 			main.startRegistry();
 			main.controller = new Controller();
-			Naming.rebind(Controller.SERVER_NAME_IN_REGISTRY, main.controller);
+			Naming.rebind("rmi://localhost:" + Registry.REGISTRY_PORT + "/" + Controller.SERVER_NAME_IN_REGISTRY,
+					main.controller);
 			new Thread(main).start();
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.err.println("Error while launching catalog server.");
 		}
 	}
@@ -43,7 +45,7 @@ public class Main implements Runnable {
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
 				ClientHandler clientHandler = new ClientHandler(clientSocket);
-				this.controller.setClientHandler(clientHandler);
+				this.controller.newClientHandler(clientHandler);
 				new Thread(clientHandler).start();
 			}
 		} catch (Exception e) {

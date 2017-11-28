@@ -12,7 +12,6 @@ import java.util.List;
 import common.constants.Constants;
 import common.exception.DatabaseException;
 import common.exception.IOException;
-import server.model.User;
 import server.net.ClientHandler;
 
 public class Catalog {
@@ -96,7 +95,7 @@ public class Catalog {
 		}
 	}
 
-	public boolean addFile(String name, long size, User owner, String access, String action) {
+	public boolean addFile(String name, long size, String owner, String access, String action) {
 		try {
 			this.getFile.setString(1, name);
 			ResultSet result = this.getFile.executeQuery();
@@ -105,7 +104,7 @@ public class Catalog {
 			}
 			this.addFile.setString(1, name);
 			this.addFile.setLong(2, size);
-			this.addFile.setString(3, owner.getUsername());
+			this.addFile.setString(3, owner);
 			this.addFile.setString(4, access);
 			this.addFile.setString(5, action);
 			int rows = this.addFile.executeUpdate();
@@ -116,9 +115,9 @@ public class Catalog {
 		}
 	}
 
-	public boolean deleteAccount(User user) {
+	public boolean deleteAccount(String user) {
 		try {
-			this.getOwnerFiles.setString(1, user.getUsername());
+			this.getOwnerFiles.setString(1, user);
 			ResultSet result = this.getOwnerFiles.executeQuery();
 			while (result.next()) {
 				String fileName = result.getObject(1).toString();
@@ -127,7 +126,7 @@ public class Catalog {
 					throw new IOException("Error while deleting the user's files.");
 				}
 			}
-			this.deleteAccount.setString(1, user.getUsername());
+			this.deleteAccount.setString(1, user);
 			int rows = this.deleteAccount.executeUpdate();
 			return rows == 1;
 		} catch (SQLException sqle) {
@@ -135,7 +134,7 @@ public class Catalog {
 		}
 	}
 
-	public boolean deleteFile(String fileName, User user) {
+	public boolean deleteFile(String fileName, String user) {
 		try {
 			this.getFile.setString(1, fileName);
 			ResultSet result = this.getFile.executeQuery();
@@ -144,7 +143,7 @@ public class Catalog {
 				String access = result.getObject(4).toString();
 				Object action = result.getObject(5);
 				if (access.equals(Constants.ACCESS_PUBLIC) && action.toString().equals(Constants.ACTION_READ)
-						&& !owner.equals(user.getUsername())) {
+						&& !owner.equals(user)) {
 					return false;
 				}
 			} else {
@@ -158,7 +157,7 @@ public class Catalog {
 		}
 	}
 
-	public List<Object[]> getFiles(User user) {
+	public List<Object[]> getFiles(String user) {
 		List<Object[]> files = new ArrayList<>();
 		ResultSet result = null;
 		try {
@@ -170,8 +169,7 @@ public class Catalog {
 				file[2] = result.getObject(3);
 				file[3] = result.getObject(4);
 				file[4] = result.getObject(5);
-				if (!(file[3].toString().equals(Constants.ACCESS_PRIVATE)
-						&& !file[2].toString().equals(user.getUsername()))) {
+				if (!(file[3].toString().equals(Constants.ACCESS_PRIVATE) && !file[2].toString().equals(user))) {
 					files.add(file);
 				}
 			}
@@ -187,7 +185,7 @@ public class Catalog {
 		return files;
 	}
 
-	public boolean updateFile(String fileName, long length, User user, String access, String action) {
+	public boolean updateFile(String fileName, long length, String user, String access, String action) {
 		try {
 			this.getFile.setString(1, fileName);
 			ResultSet result = this.getFile.executeQuery();
@@ -196,7 +194,7 @@ public class Catalog {
 				String accessValue = result.getObject(4).toString();
 				Object actionValue = result.getObject(5);
 				if (accessValue.equals(Constants.ACCESS_PUBLIC) && actionValue.toString().equals(Constants.ACTION_READ)
-						&& !owner.equals(user.getUsername())) {
+						&& !owner.equals(user)) {
 					return false;
 				} else {
 					this.updateFile.setLong(1, length);

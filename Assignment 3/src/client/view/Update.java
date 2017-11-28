@@ -70,15 +70,16 @@ public class Update extends TableCell<CatalogFile, Boolean> {
 							}
 						}
 						if (fileToUpdate != null && accessValue != null && actionValid) {
-							if (viewManager.getServer().updateFile(fileName, fileToUpdate.length(), accessValue,
-									actionValue)) {
+							if (viewManager.getServer().updateFile(viewManager.getServerReader(), fileName,
+									fileToUpdate.length(), accessValue, actionValue)) {
 								viewManager.getController().sendFile(fileToUpdate, fileName);
 								Alert alert = new Alert(AlertType.INFORMATION);
 								alert.setTitle("Update success");
 								alert.setHeaderText(null);
 								alert.setContentText("The file has been updated on the server.");
 								alert.showAndWait();
-								List<Object[]> filesList = viewManager.getServer().getFiles();
+								List<Object[]> filesList = viewManager.getServer()
+										.getFiles(viewManager.getServerReader());
 								ListFiles listUpdated = new ListFiles(viewManager, filesList);
 								Scene sceneUpdated = listUpdated.getScene();
 								viewManager.getStage().setScene(sceneUpdated);

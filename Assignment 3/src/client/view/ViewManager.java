@@ -17,19 +17,26 @@ public class ViewManager {
 	private static final String ADDRESS = "localhost";
 
 	private CatalogServer server;
+	private CatalogServer serverReader;
 	private Stage stage;
 	private Controller controller;
 
 	public ViewManager(Stage stage) throws MalformedURLException, RemoteException, NotBoundException {
+		this.server = (CatalogServer) Naming.lookup("rmi://localhost/" + CatalogServer.SERVER_NAME_IN_REGISTRY);
+		this.serverReader = new ServerReader(this.server);
+		this.server.incomingClient(this.serverReader);
 		this.controller = new Controller();
 		this.controller.connect(ADDRESS, PORT);
-		this.server = (CatalogServer) Naming.lookup("//localhost/" + CatalogServer.SERVER_NAME_IN_REGISTRY);
 		this.stage = stage;
 		this.initStage();
 	}
 
 	public CatalogServer getServer() {
 		return this.server;
+	}
+
+	public CatalogServer getServerReader() {
+		return this.serverReader;
 	}
 
 	public Stage getStage() {

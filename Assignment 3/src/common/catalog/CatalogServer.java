@@ -8,22 +8,26 @@ public interface CatalogServer extends Remote {
 
 	public static final String SERVER_NAME_IN_REGISTRY = "CATALOG_SERVER";
 
-	boolean login(String username, String password) throws RemoteException;
+	void incomingClient(CatalogServer catalogServer) throws RemoteException;
 
-	boolean register(String username, String password) throws RemoteException;
+	boolean login(CatalogServer catalogServer, String username, String password) throws RemoteException;
 
-	boolean unregister() throws RemoteException;
+	boolean register(CatalogServer catalogServer, String username, String password) throws RemoteException;
 
-	boolean logout() throws RemoteException;
+	boolean unregister(CatalogServer catalogServer) throws RemoteException;
 
-	boolean addFile(String name, long size, String access, String action) throws RemoteException;
+	boolean logout(CatalogServer catalogServer) throws RemoteException;
 
-	List<Object[]> getFiles() throws RemoteException;
+	boolean addFile(CatalogServer catalogServer, String name, long size, String access, String action)
+			throws RemoteException;
 
-	boolean downloadFile(String fileName) throws RemoteException;
+	List<Object[]> getFiles(CatalogServer catalogServer) throws RemoteException;
 
-	boolean removeFile(String fileName) throws RemoteException;
+	boolean downloadFile(CatalogServer catalogServer, String fileName) throws RemoteException;
 
-	boolean updateFile(String fileName, long length, String access, String action) throws RemoteException;
+	boolean removeFile(CatalogServer catalogServer, String fileName) throws RemoteException;
+
+	boolean updateFile(CatalogServer catalogServer, String fileName, long length, String access, String action)
+			throws RemoteException;
 
 }

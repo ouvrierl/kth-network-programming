@@ -30,13 +30,13 @@ public class Delete extends TableCell<CatalogFile, Boolean> {
 				try {
 					CatalogFile file = getTableView().getItems().get(getIndex());
 					String fileName = file.getName();
-					if (viewManager.getServer().removeFile(fileName)) {
+					if (viewManager.getServer().removeFile(viewManager.getServerReader(), fileName)) {
 						Alert alert = new Alert(AlertType.INFORMATION);
 						alert.setTitle("Delete success");
 						alert.setHeaderText(null);
 						alert.setContentText("The file has been deleted on the server.");
 						alert.showAndWait();
-						List<Object[]> filesList = viewManager.getServer().getFiles();
+						List<Object[]> filesList = viewManager.getServer().getFiles(viewManager.getServerReader());
 						ListFiles listUpdated = new ListFiles(viewManager, filesList);
 						Scene sceneUpdated = listUpdated.getScene();
 						viewManager.getStage().setScene(sceneUpdated);

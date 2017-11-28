@@ -50,7 +50,7 @@ public class Register {
 					String username = usernameValue.getText();
 					String password = passwordValue.getText();
 					if (!username.equals("") && !password.equals("")
-							&& viewManager.getServer().register(username, password)) {
+							&& viewManager.getServer().register(viewManager.getServerReader(), username, password)) {
 						Alert alert = new Alert(AlertType.INFORMATION);
 						alert.setTitle("Register success");
 						alert.setHeaderText(null);
@@ -64,7 +64,7 @@ public class Register {
 						alert.setTitle("Register failure");
 						alert.setHeaderText(null);
 						alert.setContentText(
-								"The username/password is empty or the username already exists, please choose another one.");
+								"Impossible to register.\nThe username/password is empty or the username already exists, please choose another one.\n Make sure that you are not already logged.");
 						alert.showAndWait();
 						usernameValue.setText("");
 						passwordValue.setText("");

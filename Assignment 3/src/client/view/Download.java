@@ -37,7 +37,7 @@ public class Download extends TableCell<CatalogFile, Boolean> {
 					File fileToDownload = fileChooser.showSaveDialog(viewManager.getStage());
 					if (fileToDownload != null) {
 						viewManager.getController().getServerConnection().setDownloadFile(fileToDownload);
-						if (viewManager.getServer().downloadFile(fileName)) {
+						if (viewManager.getServer().downloadFile(viewManager.getServerReader(), fileName)) {
 							Alert alert = new Alert(AlertType.INFORMATION);
 							alert.setTitle("Download success");
 							alert.setHeaderText(null);

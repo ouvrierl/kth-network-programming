@@ -152,14 +152,15 @@ public class ListFiles {
 						}
 					}
 					if (file != null && accessValue != null && actionValid) {
-						if (viewManager.getServer().addFile(file.getName(), file.length(), accessValue, actionValue)) {
+						if (viewManager.getServer().addFile(viewManager.getServerReader(), file.getName(),
+								file.length(), accessValue, actionValue)) {
 							viewManager.getController().sendFile(file, file.getName());
 							Alert alert = new Alert(AlertType.INFORMATION);
 							alert.setTitle("Upload success");
 							alert.setHeaderText(null);
 							alert.setContentText("The file has been added to the catalog.");
 							alert.showAndWait();
-							List<Object[]> filesList = viewManager.getServer().getFiles();
+							List<Object[]> filesList = viewManager.getServer().getFiles(viewManager.getServer());
 							ListFiles listUpdated = new ListFiles(viewManager, filesList);
 							Scene sceneUpdated = listUpdated.getScene();
 							viewManager.getStage().setScene(sceneUpdated);

@@ -45,7 +45,7 @@ public class Home {
 			@Override
 			public void handle(ActionEvent e) {
 				try {
-					if (viewManager.getServer().logout()) {
+					if (viewManager.getServer().logout(viewManager.getServerReader())) {
 						Alert alert = new Alert(AlertType.INFORMATION);
 						alert.setTitle("Logout success");
 						alert.setHeaderText(null);
@@ -81,7 +81,7 @@ public class Home {
 			@Override
 			public void handle(ActionEvent e) {
 				try {
-					if (viewManager.getServer().unregister()) {
+					if (viewManager.getServer().unregister(viewManager.getServerReader())) {
 						Alert alert = new Alert(AlertType.INFORMATION);
 						alert.setTitle("Unregister success");
 						alert.setHeaderText(null);
@@ -106,7 +106,7 @@ public class Home {
 			@Override
 			public void handle(ActionEvent e) {
 				try {
-					List<Object[]> filesList = viewManager.getServer().getFiles();
+					List<Object[]> filesList = viewManager.getServer().getFiles(viewManager.getServerReader());
 					if (filesList == null) {
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("Access catalog failure");

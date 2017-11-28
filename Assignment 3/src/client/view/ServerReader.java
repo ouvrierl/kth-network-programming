@@ -1,5 +1,10 @@
 package client.view;
 
+import java.awt.Image;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
+import java.awt.TrayIcon.MessageType;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
@@ -8,10 +13,7 @@ import common.catalog.CatalogServer;
 
 public class ServerReader extends UnicastRemoteObject implements CatalogServer {
 
-	private CatalogServer catalogServer;
-
-	protected ServerReader(CatalogServer catalogServers) throws RemoteException {
-		this.catalogServer = catalogServer;
+	protected ServerReader() throws RemoteException {
 	}
 
 	@Override
@@ -74,6 +76,28 @@ public class ServerReader extends UnicastRemoteObject implements CatalogServer {
 	public boolean downloadFile(CatalogServer catalogServer, String fileName) throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public boolean notifyFile(CatalogServer catalogServer, String fileName) throws RemoteException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void receiveNotification(String fileName, String username, String action) throws RemoteException {
+		try {
+			SystemTray tray = SystemTray.getSystemTray();
+			Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+			TrayIcon trayIcon = new TrayIcon(image, "Notification");
+			trayIcon.setImageAutoSize(true);
+			trayIcon.setToolTip("Notification");
+			tray.add(trayIcon);
+			trayIcon.displayMessage("Notification", username + " has " + action + " the file " + fileName,
+					MessageType.INFO);
+		} catch (Exception e) {
+			System.err.println("Error while displaying notification.");
+		}
 	}
 
 }

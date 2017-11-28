@@ -81,7 +81,6 @@ public class ServerConnection implements Runnable {
 		try {
 			for (;;) {
 				String message = this.input.readUTF();
-				System.out.println("Message : " + message);
 				switch (message) {
 				case Constants.FILE:
 					try (FileOutputStream out = new FileOutputStream(this.downloadFile);) {

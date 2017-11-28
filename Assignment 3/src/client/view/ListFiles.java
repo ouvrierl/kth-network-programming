@@ -108,8 +108,22 @@ public class ListFiles {
 				return new Delete(viewManager);
 			}
 		});
+		TableColumn notify = new TableColumn("Notify");
+		notify.setCellValueFactory(
+				new Callback<TableColumn.CellDataFeatures<CatalogFile, Boolean>, ObservableValue<Boolean>>() {
+					@Override
+					public ObservableValue<Boolean> call(TableColumn.CellDataFeatures<CatalogFile, Boolean> p) {
+						return new SimpleBooleanProperty(p.getValue() != null);
+					}
+				});
+		notify.setCellFactory(new Callback<TableColumn<CatalogFile, Boolean>, TableCell<CatalogFile, Boolean>>() {
+			@Override
+			public TableCell<CatalogFile, Boolean> call(TableColumn<CatalogFile, Boolean> p) {
+				return new Notify(viewManager);
+			}
+		});
 		table.setItems(data);
-		table.getColumns().addAll(name, size, owner, access, action, download, update, delete);
+		table.getColumns().addAll(name, size, owner, access, action, download, update, delete, notify);
 		table.setMinWidth(950);
 		root.add(table, 0, 2);
 

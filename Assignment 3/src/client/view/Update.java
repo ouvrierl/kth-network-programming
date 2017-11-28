@@ -27,8 +27,8 @@ public class Update extends TableCell<CatalogFile, Boolean> {
 
 		this.viewManager = viewManager;
 
-		Image imageHome = new Image(getClass().getResourceAsStream("./update.jpeg"), 25, 25, true, false);
-		this.update = new Button("", new ImageView(imageHome));
+		Image imageUpdate = new Image(getClass().getResourceAsStream("./update.jpeg"), 25, 25, true, false);
+		this.update = new Button("", new ImageView(imageUpdate));
 
 		this.update.setOnAction(new EventHandler<ActionEvent>() {
 			@Override

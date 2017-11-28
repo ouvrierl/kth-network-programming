@@ -23,7 +23,7 @@ public class ViewManager {
 
 	public ViewManager(Stage stage) throws MalformedURLException, RemoteException, NotBoundException {
 		this.server = (CatalogServer) Naming.lookup("rmi://localhost/" + CatalogServer.SERVER_NAME_IN_REGISTRY);
-		this.serverReader = new ServerReader(this.server);
+		this.serverReader = new ServerReader();
 		this.server.incomingClient(this.serverReader);
 		this.controller = new Controller();
 		this.controller.connect(ADDRESS, PORT);

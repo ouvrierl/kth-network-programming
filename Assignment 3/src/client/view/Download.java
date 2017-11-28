@@ -22,8 +22,8 @@ public class Download extends TableCell<CatalogFile, Boolean> {
 
 		this.viewManager = viewManager;
 
-		Image imageHome = new Image(getClass().getResourceAsStream("./download.jpg"), 25, 25, true, false);
-		this.download = new Button("", new ImageView(imageHome));
+		Image imageDownload = new Image(getClass().getResourceAsStream("./download.jpg"), 25, 25, true, false);
+		this.download = new Button("", new ImageView(imageDownload));
 
 		this.download.setOnAction(new EventHandler<ActionEvent>() {
 			@Override

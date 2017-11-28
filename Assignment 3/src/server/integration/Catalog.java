@@ -212,4 +212,25 @@ public class Catalog {
 		}
 	}
 
+	public boolean controlNotify(String user, String fileName) {
+		try {
+			this.getFile.setString(1, fileName);
+			ResultSet result = this.getFile.executeQuery();
+			if (result.next()) {
+				String owner = result.getObject(3).toString();
+				String accessValue = result.getObject(4).toString();
+				return accessValue.equals(Constants.ACCESS_PUBLIC) && owner.equals(user); // Can
+																							// be
+																							// someone
+																							// else
+																							// than
+																							// owner?
+			} else {
+				return false;
+			}
+		} catch (SQLException sqle) {
+			throw new DatabaseException("Error while checking for notify in the database.");
+		}
+	}
+
 }

@@ -36,7 +36,6 @@ public class ClientHandler implements Runnable {
 		while (this.connected) {
 			try {
 				String message = this.input.readUTF();
-				System.out.println("Message : " + message);
 				if (message != null && !message.equals("")) {
 					switch (message) {
 					case Constants.QUIT:

@@ -1,5 +1,7 @@
 package client.view;
 
+import java.security.MessageDigest;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -49,24 +51,39 @@ public class Login {
 				try {
 					String username = usernameValue.getText();
 					String password = passwordValue.getText();
-					if (viewManager.getServer().login(viewManager.getServerReader(), username, password)) {
-						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setTitle("Login success");
-						alert.setHeaderText(null);
-						alert.setContentText("You are now logged.");
-						alert.showAndWait();
-						Home home = new Home(viewManager);
-						Scene homeScene = home.getScene();
-						viewManager.getStage().setScene(homeScene);
-					} else {
-						Alert alert = new Alert(AlertType.ERROR);
-						alert.setTitle("Login failure");
-						alert.setHeaderText(null);
-						alert.setContentText(
-								"Impossible to login.\nMake sure the username and password are correct, and try again.\nBeware that you must register before login.\nMake sure you are not already logged and that this account isn't accessed by another client.");
-						alert.showAndWait();
-						usernameValue.setText("");
-						passwordValue.setText("");
+					String passwordHashed = null;
+					if (!username.equals("") && !password.equals("")) {
+						try {
+							MessageDigest md = MessageDigest.getInstance("MD5");
+							md.update(password.getBytes());
+							byte[] bytes = md.digest();
+							StringBuilder sb = new StringBuilder();
+							for (int i = 0; i < bytes.length; i++) {
+								sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+							}
+							passwordHashed = sb.toString();
+						} catch (Exception exception) {
+							System.err.println("Error while hashing password.");
+						}
+						if (viewManager.getServer().login(viewManager.getServerReader(), username, passwordHashed)) {
+							Alert alert = new Alert(AlertType.INFORMATION);
+							alert.setTitle("Login success");
+							alert.setHeaderText(null);
+							alert.setContentText("You are now logged.");
+							alert.showAndWait();
+							Home home = new Home(viewManager);
+							Scene homeScene = home.getScene();
+							viewManager.getStage().setScene(homeScene);
+						} else {
+							Alert alert = new Alert(AlertType.ERROR);
+							alert.setTitle("Login failure");
+							alert.setHeaderText(null);
+							alert.setContentText(
+									"Impossible to login.\nMake sure the username and password are correct, and try again.\nBeware that you must register before login.\nMake sure you are not already logged and that this account isn't accessed by another client.");
+							alert.showAndWait();
+							usernameValue.setText("");
+							passwordValue.setText("");
+						}
 					}
 				} catch (Exception exception) {
 					System.err.println("Login request failed.");

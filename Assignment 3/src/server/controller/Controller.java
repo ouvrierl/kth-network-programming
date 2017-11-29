@@ -46,6 +46,12 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	}
 
 	@Override
+	public void leavingClient(CatalogServer catalogServer) throws RemoteException {
+		this.loggedUsers.remove(catalogServer);
+		this.clientHandlers.remove(catalogServer);
+	}
+
+	@Override
 	public synchronized boolean login(CatalogServer catalogServer, String username, String password)
 			throws RemoteException {
 		if (this.loggedUsers.containsKey(catalogServer)) {
@@ -180,10 +186,11 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 
 	private synchronized void checkNotification(String fileName, String username, String action) {
 		for (Entry<String, String> association : this.notifications.entrySet()) {
-			if (association.getKey().equals(fileName)) {
+			if (association.getKey().equals(fileName) && !association.getValue().equals(username)) {
 				try {
 					this.getCatalogServer(association.getValue()).receiveNotification(fileName, username, action);
 				} catch (RemoteException e) {
+					e.printStackTrace();
 					System.err.println("Error while sending notification.");
 				}
 			}

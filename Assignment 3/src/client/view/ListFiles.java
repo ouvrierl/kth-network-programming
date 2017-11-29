@@ -44,6 +44,23 @@ public class ListFiles {
 		Label intro = new Label("List of the files in the catalog");
 		root.add(intro, 0, 0);
 
+		Image imageRefresh = new Image(getClass().getResourceAsStream("./refresh.jpg"), 25, 25, true, false);
+		Button refresh = new Button("", new ImageView(imageRefresh));
+		root.add(refresh, 1, 0);
+		refresh.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				try {
+					List<Object[]> filesList = viewManager.getServer().getFiles(viewManager.getServerReader());
+					ListFiles listUpdated = new ListFiles(viewManager, filesList);
+					Scene sceneUpdated = listUpdated.getScene();
+					viewManager.getStage().setScene(sceneUpdated);
+				} catch (Exception exception) {
+					System.err.println("Error while refreshing the catalog list.");
+				}
+			}
+		});
+
 		final ObservableList<client.view.CatalogFile> data = FXCollections.observableArrayList();
 		for (Object[] file : files) {
 			String actionPerm = "";
@@ -206,7 +223,7 @@ public class ListFiles {
 			}
 		});
 
-		this.scene = new Scene(root, 1000, 600);
+		this.scene = new Scene(root, 1050, 600);
 		this.scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
 	}

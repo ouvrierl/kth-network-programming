@@ -50,7 +50,13 @@ public class ViewManager {
 	public void initStage() {
 		this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			public void handle(WindowEvent we) {
-				controller.disconnect();
+				try {
+					controller.disconnect();
+					server.leavingClient(serverReader);
+				} catch (Exception exception) {
+					System.err.println("Error while client leaving.");
+				}
+
 			}
 		});
 	}

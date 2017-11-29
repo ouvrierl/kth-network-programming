@@ -13,6 +13,8 @@ public interface CatalogServer extends Remote {
 
 	void incomingClient(CatalogServer catalogServer) throws RemoteException;
 
+	void leavingClient(CatalogServer catalogServer) throws RemoteException;
+
 	boolean login(CatalogServer catalogServer, String username, String password) throws RemoteException;
 
 	boolean register(CatalogServer catalogServer, String username, String password) throws RemoteException;

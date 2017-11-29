@@ -189,8 +189,8 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 			if (association.getKey().equals(fileName) && !association.getValue().equals(username)) {
 				try {
 					this.getCatalogServer(association.getValue()).receiveNotification(fileName, username, action);
+					return;
 				} catch (RemoteException e) {
-					e.printStackTrace();
 					System.err.println("Error while sending notification.");
 				}
 			}

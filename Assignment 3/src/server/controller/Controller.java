@@ -78,6 +78,7 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	public synchronized boolean register(CatalogServer catalogServer, String username, String password)
 			throws RemoteException {
 		if (this.loggedUsers.containsKey(catalogServer)) {
+			// Client already logged, can't create a new account
 			return false;
 		}
 		return this.catalog.createAccount(username, password);
@@ -91,8 +92,8 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 		}
 		if (this.catalog.deleteAccount(this.loggedUsers.get(catalogServer))) {
 			// Ok
-			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer));
-			this.loggedUsers.remove(catalogServer);
+			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer)); // We remove the notifications linked to the user
+			this.loggedUsers.remove(catalogServer); // Logout
 			return true;
 		} else {
 			// User not removed in database
@@ -103,10 +104,12 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	@Override
 	public synchronized boolean logout(CatalogServer catalogServer) throws RemoteException {
 		if (this.loggedUsers.containsKey(catalogServer)) {
-			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer));
-			this.loggedUsers.remove(catalogServer);
+			// Ok
+			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer)); // We remove the notifications linked to the user
+			this.loggedUsers.remove(catalogServer); // Logout
 			return true;
 		} else {
+			// Client not logged
 			return false;
 		}
 	}
@@ -114,17 +117,16 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	@Override
 	public synchronized boolean addFile(CatalogServer catalogServer, String name, long size, String access,
 			String action) throws RemoteException {
-		if (!this.loggedUsers.containsKey(catalogServer)) {
-			return false;
-		}
 		return this.catalog.addFile(name, size, this.loggedUsers.get(catalogServer), access, action);
 	}
 
 	@Override
 	public synchronized List<Object[]> getFiles(CatalogServer catalogServer) throws RemoteException {
 		if (!this.loggedUsers.containsKey(catalogServer)) {
+			// Client must be logged to access the catalog
 			return null;
 		} else {
+			// Ok
 			return this.catalog.getFiles(this.loggedUsers.get(catalogServer));
 		}
 	}
@@ -138,16 +140,19 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 
 	@Override
 	public synchronized boolean removeFile(CatalogServer catalogServer, String fileName) throws RemoteException {
-		boolean dataDeleted = this.catalog.deleteFile(fileName, this.loggedUsers.get(catalogServer));
+		boolean dataDeleted = this.catalog.deleteFile(fileName, this.loggedUsers.get(catalogServer)); // File removed from the database
 		boolean fileDeleted = false;
 		if (dataDeleted) {
+			// File removed from the server system
 			File fileToDelete = new File(ClientHandler.FILES_DIRECTORY + fileName);
 			fileDeleted = fileToDelete.delete();
 		}
 		if (fileDeleted && dataDeleted) {
+			// Ok
 			this.checkNotification(fileName, this.loggedUsers.get(catalogServer), CatalogServer.ACTION_REMOVE);
 			return true;
 		} else {
+			// Problem while removing file
 			return false;
 		}
 	}
@@ -156,9 +161,11 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	public synchronized boolean updateFile(CatalogServer catalogServer, String fileName, long length, String access,
 			String action) throws RemoteException {
 		if (this.catalog.updateFile(fileName, length, this.loggedUsers.get(catalogServer), access, action)) {
+			// Update in database ok
 			this.checkNotification(fileName, this.loggedUsers.get(catalogServer), CatalogServer.ACTION_UPDATE);
 			return true;
 		} else {
+			// Problem while updating database
 			return false;
 		}
 	}
@@ -166,6 +173,7 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	@Override
 	public synchronized boolean notifyFile(CatalogServer catalogServer, String fileName) throws RemoteException {
 		if (this.catalog.controlNotify(this.loggedUsers.get(catalogServer), fileName)) {
+			// Ok if client owner of the file
 			this.notifications.put(fileName, this.loggedUsers.get(catalogServer));
 			return true;
 		} else {

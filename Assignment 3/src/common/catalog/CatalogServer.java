@@ -7,6 +7,7 @@ import java.util.List;
 public interface CatalogServer extends Remote {
 
 	public static final String SERVER_NAME_IN_REGISTRY = "CATALOG_SERVER";
+	
 	public static final String ACTION_DOWNLOAD = "downloaded";
 	public static final String ACTION_REMOVE = "removed";
 	public static final String ACTION_UPDATE = "updated";

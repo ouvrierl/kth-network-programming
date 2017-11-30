@@ -65,6 +65,7 @@ public class Catalog {
 			this.checkAccount.setString(2, password);
 			result = this.checkAccount.executeQuery();
 			if (result.next()) {
+				// Ok, match
 				return true;
 			}
 		} catch (SQLException sqle) {
@@ -84,6 +85,7 @@ public class Catalog {
 			this.checkUsername.setString(1, username);
 			ResultSet result = this.checkUsername.executeQuery();
 			if (result.next()) {
+				// Username already used
 				return false;
 			}
 			this.createAccount.setString(1, username);
@@ -100,6 +102,7 @@ public class Catalog {
 			this.getFile.setString(1, name);
 			ResultSet result = this.getFile.executeQuery();
 			if (result.next()) {
+				// Name of file already used
 				return false;
 			}
 			this.addFile.setString(1, name);
@@ -110,7 +113,6 @@ public class Catalog {
 			int rows = this.addFile.executeUpdate();
 			return rows == 1;
 		} catch (SQLException sqle) {
-			sqle.printStackTrace();
 			throw new DatabaseException("Error while adding file infos in the database.");
 		}
 	}
@@ -120,6 +122,7 @@ public class Catalog {
 			this.getOwnerFiles.setString(1, user);
 			ResultSet result = this.getOwnerFiles.executeQuery();
 			while (result.next()) {
+				// All files are removed on the server system
 				String fileName = result.getObject(1).toString();
 				File fileToDelete = new File(ClientHandler.FILES_DIRECTORY + fileName);
 				if (!fileToDelete.delete()) {
@@ -128,6 +131,7 @@ public class Catalog {
 			}
 			this.deleteAccount.setString(1, user);
 			int rows = this.deleteAccount.executeUpdate();
+			// Cascade so it will automatically remove the files of the user on the table file
 			return rows == 1;
 		} catch (SQLException sqle) {
 			throw new DatabaseException("Error while removing account.");
@@ -144,9 +148,11 @@ public class Catalog {
 				Object action = result.getObject(5);
 				if (access.equals(Constants.ACCESS_PUBLIC) && action.toString().equals(Constants.ACTION_READ)
 						&& !owner.equals(user)) {
+					// The user must have the rights to delete the file. Not possible if file public read, and user not the owner
 					return false;
 				}
 			} else {
+				// Name of file not in the database
 				return false;
 			}
 			this.deleteFile.setString(1, fileName);
@@ -170,6 +176,7 @@ public class Catalog {
 				file[3] = result.getObject(4);
 				file[4] = result.getObject(5);
 				if (!(file[3].toString().equals(Constants.ACCESS_PRIVATE) && !file[2].toString().equals(user))) {
+					// We add the file if public or private with user == owner
 					files.add(file);
 				}
 			}
@@ -195,8 +202,10 @@ public class Catalog {
 				Object actionValue = result.getObject(5);
 				if (accessValue.equals(Constants.ACCESS_PUBLIC) && actionValue.toString().equals(Constants.ACTION_READ)
 						&& !owner.equals(user)) {
+					// The user must have the rights to update the file. Not possible if file public read, and user not the owner
 					return false;
 				} else {
+					// Informations about file updated (size, access, action)
 					this.updateFile.setLong(1, length);
 					this.updateFile.setString(2, access);
 					this.updateFile.setString(3, action);
@@ -205,6 +214,7 @@ public class Catalog {
 					return rows == 1;
 				}
 			} else {
+				// Name of file not found in database
 				return false;
 			}
 		} catch (SQLException sqle) {
@@ -219,13 +229,10 @@ public class Catalog {
 			if (result.next()) {
 				String owner = result.getObject(3).toString();
 				String accessValue = result.getObject(4).toString();
-				return accessValue.equals(Constants.ACCESS_PUBLIC) && owner.equals(user); // Can
-																							// be
-																							// someone
-																							// else
-																							// than
-																							// owner?
+				return accessValue.equals(Constants.ACCESS_PUBLIC) && owner.equals(user);
+				// User must be the owner to ask notification, and pointless on private file
 			} else {
+				// Name of file not found in database
 				return false;
 			}
 		} catch (SQLException sqle) {

@@ -192,7 +192,7 @@ public class ListFiles {
 							alert.setHeaderText(null);
 							alert.setContentText("The file has been added to the catalog.");
 							alert.showAndWait();
-							List<Object[]> filesList = viewManager.getServer().getFiles(viewManager.getServer());
+							List<Object[]> filesList = viewManager.getServer().getFiles(viewManager.getServerReader());
 							ListFiles listUpdated = new ListFiles(viewManager, filesList);
 							Scene sceneUpdated = listUpdated.getScene();
 							viewManager.getStage().setScene(sceneUpdated);

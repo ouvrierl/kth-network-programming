@@ -30,8 +30,7 @@ public class ClientHandler implements Runnable {
 			this.input = new DataInputStream(this.clientSocket.getInputStream());
 			this.output = new DataOutputStream(this.clientSocket.getOutputStream());
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new ConnectionException("Error during the server connection");
+			throw new ConnectionException("Error during the server connection.");
 		}
 		while (this.connected) {
 			try {
@@ -43,7 +42,6 @@ public class ClientHandler implements Runnable {
 						break;
 					case Constants.FILE:
 						String name = this.input.readUTF();
-						System.out.println("File name : " + name);
 						File file = new File(FILES_DIRECTORY + name);
 						try (FileOutputStream out = new FileOutputStream(file);) {
 							byte buffer[] = new byte[Constants.BUFFER_SIZE];
@@ -59,7 +57,6 @@ public class ClientHandler implements Runnable {
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
 				this.quit();
 				throw new MessageException("Error while receiving message from the client.");
 			}

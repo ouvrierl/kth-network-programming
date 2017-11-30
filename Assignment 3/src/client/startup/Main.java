@@ -1,9 +1,5 @@
 package client.startup;
 
-import java.net.MalformedURLException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-
 import client.view.Home;
 import client.view.ViewManager;
 import javafx.application.Application;
@@ -12,8 +8,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
-
+	public static void main(String[] args) {
 		launch(args);
 	}
 

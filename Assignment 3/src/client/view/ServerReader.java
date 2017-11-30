@@ -16,6 +16,8 @@ public class ServerReader extends UnicastRemoteObject implements CatalogServer {
 	protected ServerReader() throws RemoteException {
 	}
 
+	/** From client to server **/
+
 	@Override
 	public boolean login(CatalogServer catalogServer, String username, String password) throws RemoteException {
 		return false;
@@ -76,6 +78,8 @@ public class ServerReader extends UnicastRemoteObject implements CatalogServer {
 		return false;
 	}
 
+	/** From server to client **/
+
 	@Override
 	public void receiveNotification(String fileName, String username, String action) throws RemoteException {
 		try {
@@ -88,7 +92,6 @@ public class ServerReader extends UnicastRemoteObject implements CatalogServer {
 			trayIcon.displayMessage("Notification", username + " has " + action + " the file " + fileName,
 					MessageType.INFO);
 		} catch (Exception e) {
-			e.printStackTrace();
 			System.err.println("Error while displaying notification.");
 		}
 	}

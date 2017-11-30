@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 
 import client.controller.Controller;
 import common.catalog.CatalogServer;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -53,6 +54,8 @@ public class ViewManager {
 				try {
 					controller.disconnect();
 					server.leavingClient(serverReader);
+					Platform.exit();
+					System.exit(0);
 				} catch (Exception exception) {
 					System.err.println("Error while client leaving.");
 				}

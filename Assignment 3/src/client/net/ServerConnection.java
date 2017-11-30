@@ -53,7 +53,6 @@ public class ServerConnection implements Runnable {
 			this.output.writeUTF(message);
 			this.output.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw new MessageException("Error while sending message to server.");
 		}
 	}
@@ -71,7 +70,6 @@ public class ServerConnection implements Runnable {
 				this.output.flush();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new MessageException("Error while sending file to server.");
 		}
 	}
@@ -98,7 +96,6 @@ public class ServerConnection implements Runnable {
 			}
 		} catch (Exception e) {
 			if (this.connected) {
-				e.printStackTrace();
 				throw new MessageException("Error while receiving message from the server.");
 			}
 		}

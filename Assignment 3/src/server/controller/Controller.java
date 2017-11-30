@@ -40,13 +40,15 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 		this.serverWaitingForSocket = null;
 	}
 
+	/** From client to server **/
+
 	@Override
 	public synchronized void incomingClient(CatalogServer catalogServer) throws RemoteException {
 		this.serverWaitingForSocket = catalogServer;
 	}
 
 	@Override
-	public void leavingClient(CatalogServer catalogServer) throws RemoteException {
+	public synchronized void leavingClient(CatalogServer catalogServer) throws RemoteException {
 		this.loggedUsers.remove(catalogServer);
 		this.clientHandlers.remove(catalogServer);
 	}
@@ -63,9 +65,11 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 			return false;
 		}
 		if (this.catalog.isAccount(username, password)) {
+			// Ok
 			this.loggedUsers.put(catalogServer, username);
 			return true;
 		} else {
+			// Wrong username or password
 			return false;
 		}
 	}
@@ -82,13 +86,16 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	@Override
 	public synchronized boolean unregister(CatalogServer catalogServer) throws RemoteException {
 		if (!this.loggedUsers.containsKey(catalogServer)) {
+			// Client not logged
 			return false;
 		}
 		if (this.catalog.deleteAccount(this.loggedUsers.get(catalogServer))) {
+			// Ok
 			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer));
 			this.loggedUsers.remove(catalogServer);
 			return true;
 		} else {
+			// User not removed in database
 			return false;
 		}
 	}
@@ -124,7 +131,6 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 
 	@Override
 	public synchronized boolean downloadFile(CatalogServer catalogServer, String fileName) throws RemoteException {
-		// Check if file exists for security
 		this.clientHandlers.get(catalogServer).sendFile(fileName);
 		this.checkNotification(fileName, this.loggedUsers.get(catalogServer), CatalogServer.ACTION_DOWNLOAD);
 		return true;
@@ -196,6 +202,8 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 			}
 		}
 	}
+
+	/** From server to client **/
 
 	@Override
 	public void receiveNotification(String fileName, String username, String action) throws RemoteException {

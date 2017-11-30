@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le :  mar. 28 nov. 2017 à 21:41
+-- Généré le :  jeu. 30 nov. 2017 à 10:27
 -- Version du serveur :  10.1.28-MariaDB
 -- Version de PHP :  7.1.10
 
@@ -44,18 +44,13 @@ INSERT INTO `file` (`name`, `size`, `owner`, `access`, `action`) VALUES
 ('23632112_1591179874312168_4765289876997081932_o.jpg', 233180, 'lucie', 'public', 'write'),
 ('23632291_1591179794312176_4279051922610823039_o.jpg', 217869, 'lucie', 'private', NULL),
 ('A1Lektion3.pdf', 1755248, 'lucie', 'public', 'write'),
-('Baccalauréat.jpg', 897432, 'lucie', 'public', 'write'),
-('Convention OUVRIER-BUFFET Lucie.pdf', 928437, 'lucie', 'private', NULL),
 ('Course description A1.pdf', 140059, 'test', 'private', NULL),
 ('Disability & Special needs.pdf', 257379, 'test', 'public', 'read'),
-('FicheEntreeFloralis_Lucie_Ouvrier_Buffet.docx', 46374, 'lucie', 'public', 'write'),
 ('Group 2 members_.pdf', 85102, 'test', 'private', NULL),
 ('IMG_0657.jpg', 1989374, 'marine', 'public', 'write'),
 ('IMG_0665.jpg', 2510037, 'lucie', 'private', NULL),
 ('IMG_0964.jpg', 2616823, 'test', 'private', NULL),
-('IMG_1013.jpg', 2704729, 'lucie', 'public', 'read'),
-('sujet PFE.pdf', 376805, 'marine', 'public', 'write'),
-('taxe habitation.rtf', 516, 'test', 'public', 'read');
+('IMG_1013.jpg', 2704729, 'lucie', 'public', 'read');
 
 -- --------------------------------------------------------
 

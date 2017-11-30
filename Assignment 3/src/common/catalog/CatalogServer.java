@@ -10,6 +10,8 @@ public interface CatalogServer extends Remote {
 	public static final String ACTION_DOWNLOAD = "downloaded";
 	public static final String ACTION_REMOVE = "removed";
 	public static final String ACTION_UPDATE = "updated";
+	
+	/** From client to server **/
 
 	void incomingClient(CatalogServer catalogServer) throws RemoteException;
 
@@ -36,6 +38,8 @@ public interface CatalogServer extends Remote {
 			throws RemoteException;
 
 	boolean notifyFile(CatalogServer catalogServer, String fileName) throws RemoteException;
+	
+	/** From server to client **/
 
 	void receiveNotification(String fileName, String username, String action) throws RemoteException;
 

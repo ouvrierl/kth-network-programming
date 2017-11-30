@@ -92,7 +92,14 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 		}
 		if (this.catalog.deleteAccount(this.loggedUsers.get(catalogServer))) {
 			// Ok
-			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer)); // We remove the notifications linked to the user
+			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer)); // We
+																				// remove
+																				// the
+																				// notifications
+																				// linked
+																				// to
+																				// the
+																				// user
 			this.loggedUsers.remove(catalogServer); // Logout
 			return true;
 		} else {
@@ -105,7 +112,14 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 	public synchronized boolean logout(CatalogServer catalogServer) throws RemoteException {
 		if (this.loggedUsers.containsKey(catalogServer)) {
 			// Ok
-			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer)); // We remove the notifications linked to the user
+			this.removeFilesLinkedToUser(this.loggedUsers.get(catalogServer)); // We
+																				// remove
+																				// the
+																				// notifications
+																				// linked
+																				// to
+																				// the
+																				// user
 			this.loggedUsers.remove(catalogServer); // Logout
 			return true;
 		} else {
@@ -140,7 +154,11 @@ public class Controller extends UnicastRemoteObject implements CatalogServer {
 
 	@Override
 	public synchronized boolean removeFile(CatalogServer catalogServer, String fileName) throws RemoteException {
-		boolean dataDeleted = this.catalog.deleteFile(fileName, this.loggedUsers.get(catalogServer)); // File removed from the database
+		boolean dataDeleted = this.catalog.deleteFile(fileName, this.loggedUsers.get(catalogServer)); // File
+																										// removed
+																										// from
+																										// the
+																										// database
 		boolean fileDeleted = false;
 		if (dataDeleted) {
 			// File removed from the server system

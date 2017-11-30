@@ -24,7 +24,8 @@ public class Main implements Runnable {
 			main.controller = new Controller();
 			Naming.rebind("rmi://localhost:" + Registry.REGISTRY_PORT + "/" + Controller.SERVER_NAME_IN_REGISTRY,
 					main.controller); // Registration in registry
-			new Thread(main).start(); // ServerSocket launch and listening for new clients
+			new Thread(main).start(); // ServerSocket launch and listening for
+										// new clients
 		} catch (Exception e) {
 			System.err.println("Error while launching catalog server.");
 		}
@@ -45,7 +46,8 @@ public class Main implements Runnable {
 				Socket clientSocket = serverSocket.accept();
 				ClientHandler clientHandler = new ClientHandler(clientSocket);
 				this.controller.newClientHandler(clientHandler);
-				new Thread(clientHandler).start(); // Communication establish for each client
+				new Thread(clientHandler).start(); // Communication establish
+													// for each client
 			}
 		} catch (Exception e) {
 			throw new ConnectionException("Error during server launch on port " + PORT);

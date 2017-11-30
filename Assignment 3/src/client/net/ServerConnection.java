@@ -18,7 +18,7 @@ public class ServerConnection implements Runnable {
 	private Socket socket;
 	private DataInputStream input;
 	private DataOutputStream output;
-	private volatile boolean connected = true;
+	private boolean connected = true;
 	private File downloadFile;
 
 	public void setDownloadFile(File downloadFile) {
@@ -31,13 +31,15 @@ public class ServerConnection implements Runnable {
 			this.socket.connect(new InetSocketAddress(host, port));
 			this.input = new DataInputStream(this.socket.getInputStream());
 			this.output = new DataOutputStream(this.socket.getOutputStream());
-			new Thread(this).start(); // Communication established for each client
+			new Thread(this).start(); // Communication established for each
+			// client
 		} catch (Exception e) {
 			throw new ConnectionException("Error in connecting the client socket");
 		}
 	}
 
 	public void disconnect() {
+		this.connected = false;
 		this.sendMessage(Constants.QUIT);
 		try {
 			this.socket.close();
@@ -45,7 +47,6 @@ public class ServerConnection implements Runnable {
 			throw new ConnectionException("Error in closing the client socket");
 		}
 		this.socket = null;
-		this.connected = false;
 	}
 
 	public void sendMessage(String message) {
@@ -63,6 +64,8 @@ public class ServerConnection implements Runnable {
 			this.output.flush();
 			this.output.writeUTF(outputName);
 			this.output.flush();
+			this.output.writeLong(file.length());
+			this.output.flush();
 			byte buffer[] = new byte[Constants.BUFFER_SIZE];
 			int n;
 			while ((n = inf.read(buffer)) != -1) {
@@ -78,20 +81,14 @@ public class ServerConnection implements Runnable {
 	public void run() {
 		try {
 			for (;;) {
-				String message = this.input.readUTF();
-				switch (message) {
-				case Constants.FILE:
-					try (FileOutputStream out = new FileOutputStream(this.downloadFile);) {
-						byte buffer[] = new byte[Constants.BUFFER_SIZE];
-						long bytesRead;
-						do {
-							bytesRead = this.input.read(buffer, 0, buffer.length);
-							out.write(buffer, 0, buffer.length);
-						} while (!(bytesRead < Constants.BUFFER_SIZE));
+				long size = input.readLong();
+				int n = 0;
+				byte[] buffer = new byte[Constants.BUFFER_SIZE];
+				try (FileOutputStream out = new FileOutputStream(this.downloadFile);) {
+					while (size > 0 && (n = this.input.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
+						out.write(buffer, 0, n);
+						size -= n;
 					}
-					break;
-				default:
-					throw new MessageException("Invalid message received: " + message);
 				}
 			}
 		} catch (Exception e) {
@@ -100,4 +97,5 @@ public class ServerConnection implements Runnable {
 			}
 		}
 	}
+
 }

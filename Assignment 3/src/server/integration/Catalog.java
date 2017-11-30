@@ -131,7 +131,8 @@ public class Catalog {
 			}
 			this.deleteAccount.setString(1, user);
 			int rows = this.deleteAccount.executeUpdate();
-			// Cascade so it will automatically remove the files of the user on the table file
+			// Cascade so it will automatically remove the files of the user on
+			// the table file
 			return rows == 1;
 		} catch (SQLException sqle) {
 			throw new DatabaseException("Error while removing account.");
@@ -148,7 +149,8 @@ public class Catalog {
 				Object action = result.getObject(5);
 				if (access.equals(Constants.ACCESS_PUBLIC) && action.toString().equals(Constants.ACTION_READ)
 						&& !owner.equals(user)) {
-					// The user must have the rights to delete the file. Not possible if file public read, and user not the owner
+					// The user must have the rights to delete the file. Not
+					// possible if file public read, and user not the owner
 					return false;
 				}
 			} else {
@@ -202,7 +204,8 @@ public class Catalog {
 				Object actionValue = result.getObject(5);
 				if (accessValue.equals(Constants.ACCESS_PUBLIC) && actionValue.toString().equals(Constants.ACTION_READ)
 						&& !owner.equals(user)) {
-					// The user must have the rights to update the file. Not possible if file public read, and user not the owner
+					// The user must have the rights to update the file. Not
+					// possible if file public read, and user not the owner
 					return false;
 				} else {
 					// Informations about file updated (size, access, action)
@@ -230,7 +233,8 @@ public class Catalog {
 				String owner = result.getObject(3).toString();
 				String accessValue = result.getObject(4).toString();
 				return accessValue.equals(Constants.ACCESS_PUBLIC) && owner.equals(user);
-				// User must be the owner to ask notification, and pointless on private file
+				// User must be the owner to ask notification, and pointless on
+				// private file
 			} else {
 				// Name of file not found in database
 				return false;

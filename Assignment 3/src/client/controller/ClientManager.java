@@ -23,8 +23,10 @@ public class ClientManager {
 
 	public ClientManager(Stage stage) throws MalformedURLException, RemoteException, NotBoundException {
 		this.server = (CatalogServer) Naming.lookup("rmi://localhost/" + CatalogServer.SERVER_NAME_IN_REGISTRY);
-		this.serverReader = new ServerReader(); // Instance created for each new client
-		this.server.incomingClient(this.serverReader); // Inform the server of the new arrival
+		this.serverReader = new ServerReader(); // Instance created for each new
+												// client
+		this.server.incomingClient(this.serverReader); // Inform the server of
+														// the new arrival
 		this.controller = new Controller();
 		this.controller.connect(ADDRESS, PORT); // Socket launched
 		this.stage = stage;

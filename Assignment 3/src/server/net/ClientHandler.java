@@ -42,14 +42,17 @@ public class ClientHandler implements Runnable {
 						break;
 					case Constants.FILE:
 						String name = this.input.readUTF();
+						long size = this.input.readLong();
 						File file = new File(FILES_DIRECTORY + name);
 						try (FileOutputStream out = new FileOutputStream(file);) {
-							byte buffer[] = new byte[Constants.BUFFER_SIZE];
-							long bytesRead;
-							do {
-								bytesRead = this.input.read(buffer, 0, buffer.length);
-								out.write(buffer, 0, buffer.length);
-							} while (!(bytesRead < Constants.BUFFER_SIZE));
+							int n = 0;
+							byte[] buffer = new byte[Constants.BUFFER_SIZE];
+							while (size > 0
+									&& (n = this.input.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
+								out.write(buffer, 0, n);
+								size -= n;
+							}
+
 						}
 						break;
 					default:
@@ -75,7 +78,7 @@ public class ClientHandler implements Runnable {
 	public void sendFile(String name) {
 		File file = new File(FILES_DIRECTORY + name);
 		try (FileInputStream inf = new FileInputStream(file);) {
-			this.output.writeUTF(Constants.FILE);
+			this.output.writeLong(file.length());
 			this.output.flush();
 			byte buffer[] = new byte[Constants.BUFFER_SIZE];
 			int n;

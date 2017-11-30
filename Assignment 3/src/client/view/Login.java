@@ -2,6 +2,7 @@ package client.view;
 
 import java.security.MessageDigest;
 
+import client.controller.ClientManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -21,7 +22,7 @@ public class Login {
 
 	private Scene scene;
 
-	public Login(ViewManager viewManager) {
+	public Login(ClientManager viewManager) {
 		GridPane root = new GridPane();
 		root.setAlignment(Pos.CENTER);
 		root.setHgap(10);

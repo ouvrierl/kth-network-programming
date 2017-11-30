@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import client.controller.ClientManager;
 import common.constants.Constants;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
@@ -34,7 +35,7 @@ public class ListFiles {
 
 	private Scene scene;
 
-	public ListFiles(ViewManager viewManager, List<Object[]> files) {
+	public ListFiles(ClientManager viewManager, List<Object[]> files) {
 		GridPane root = new GridPane();
 		root.setAlignment(Pos.CENTER);
 		root.setHgap(10);

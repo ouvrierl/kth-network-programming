@@ -3,6 +3,7 @@ package client.view;
 import java.io.File;
 import java.rmi.RemoteException;
 
+import client.controller.ClientManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -16,9 +17,9 @@ import javafx.stage.FileChooser;
 public class Download extends TableCell<CatalogFile, Boolean> {
 
 	private Button download;
-	private ViewManager viewManager;
+	private ClientManager viewManager;
 
-	public Download(ViewManager viewManager) {
+	public Download(ClientManager viewManager) {
 
 		this.viewManager = viewManager;
 

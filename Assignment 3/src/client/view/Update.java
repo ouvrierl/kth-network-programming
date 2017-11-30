@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import client.controller.ClientManager;
 import common.constants.Constants;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -21,9 +22,9 @@ import javafx.stage.FileChooser;
 public class Update extends TableCell<CatalogFile, Boolean> {
 
 	private Button update;
-	private ViewManager viewManager;
+	private ClientManager viewManager;
 
-	public Update(ViewManager viewManager) {
+	public Update(ClientManager viewManager) {
 
 		this.viewManager = viewManager;
 

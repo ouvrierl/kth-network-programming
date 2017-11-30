@@ -1,5 +1,6 @@
 package client.view;
 
+import client.controller.ClientManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -12,9 +13,9 @@ import javafx.scene.image.ImageView;
 public class Notify extends TableCell<CatalogFile, Boolean> {
 
 	private Button notify;
-	private ViewManager viewManager;
+	private ClientManager viewManager;
 
-	public Notify(ViewManager viewManager) {
+	public Notify(ClientManager viewManager) {
 
 		this.viewManager = viewManager;
 

@@ -2,6 +2,7 @@ package client.view;
 
 import java.util.List;
 
+import client.controller.ClientManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -15,9 +16,9 @@ import javafx.scene.image.ImageView;
 public class Delete extends TableCell<CatalogFile, Boolean> {
 
 	private Button delete;
-	private ViewManager viewManager;
+	private ClientManager viewManager;
 
-	public Delete(ViewManager viewManager) {
+	public Delete(ClientManager viewManager) {
 
 		this.viewManager = viewManager;
 

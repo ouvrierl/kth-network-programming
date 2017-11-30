@@ -1,18 +1,17 @@
-package client.view;
+package client.controller;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
-import client.controller.Controller;
 import common.catalog.CatalogServer;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-public class ViewManager {
+public class ClientManager {
 
 	private static final int PORT = 8080;
 	private static final String ADDRESS = "localhost";
@@ -22,7 +21,7 @@ public class ViewManager {
 	private Stage stage;
 	private Controller controller;
 
-	public ViewManager(Stage stage) throws MalformedURLException, RemoteException, NotBoundException {
+	public ClientManager(Stage stage) throws MalformedURLException, RemoteException, NotBoundException {
 		this.server = (CatalogServer) Naming.lookup("rmi://localhost/" + CatalogServer.SERVER_NAME_IN_REGISTRY);
 		this.serverReader = new ServerReader();
 		this.server.incomingClient(this.serverReader);

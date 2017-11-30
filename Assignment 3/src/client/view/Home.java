@@ -2,6 +2,7 @@ package client.view;
 
 import java.util.List;
 
+import client.controller.ClientManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -17,7 +18,7 @@ public class Home {
 
 	private Scene scene;
 
-	public Home(ViewManager viewManager) {
+	public Home(ClientManager viewManager) {
 
 		GridPane root = new GridPane();
 		root.setAlignment(Pos.CENTER);

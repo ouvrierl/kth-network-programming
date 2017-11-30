@@ -1,4 +1,4 @@
-package client.view;
+package client.controller;
 
 import java.awt.Image;
 import java.awt.SystemTray;

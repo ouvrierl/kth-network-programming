@@ -1,7 +1,7 @@
 package client.startup;
 
+import client.controller.ClientManager;
 import client.view.Home;
-import client.view.ViewManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -14,7 +14,7 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		ViewManager viewManager = new ViewManager(primaryStage);
+		ClientManager viewManager = new ClientManager(primaryStage);
 		Home home = new Home(viewManager);
 		Scene homeScene = home.getScene();
 		primaryStage.setScene(homeScene);

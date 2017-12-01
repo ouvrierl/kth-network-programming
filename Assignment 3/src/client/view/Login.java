@@ -28,7 +28,6 @@ public class Login {
 		root.setHgap(10);
 		root.setVgap(10);
 		root.setPadding(new Insets(25, 25, 25, 25));
-
 		Label intro = new Label("Login");
 		root.add(intro, 1, 0);
 

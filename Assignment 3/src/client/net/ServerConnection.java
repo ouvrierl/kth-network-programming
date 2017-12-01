@@ -31,8 +31,7 @@ public class ServerConnection implements Runnable {
 			this.socket.connect(new InetSocketAddress(host, port));
 			this.input = new DataInputStream(this.socket.getInputStream());
 			this.output = new DataOutputStream(this.socket.getOutputStream());
-			new Thread(this).start(); // Communication established for each
-			// client
+			new Thread(this).start(); // Communication established for each client
 		} catch (Exception e) {
 			throw new ConnectionException("Error in connecting the client socket");
 		}

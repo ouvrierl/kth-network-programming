@@ -65,6 +65,7 @@ public class ClientHandler implements Runnable {
 					throw new MessageException("Invalid message received: " + message);
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				this.quit();
 				throw new MessageException(e.getMessage());
 			}

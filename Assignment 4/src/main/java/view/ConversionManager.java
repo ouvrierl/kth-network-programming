@@ -11,6 +11,7 @@ import javax.inject.Named;
 import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.faces.event.ValueChangeEvent;
 
 @Named(value = "ConversionManager")
 @SessionScoped
@@ -18,10 +19,11 @@ public class ConversionManager implements Serializable {
 
     @EJB
     ConversionFacade conversionFacade;
-    private String deviseFrom;
-    private String deviseTo;
+    private String deviseFrom = "SEK";
+    private String deviseTo = "SEK";
     private String amount;
     private String result;
+    private double rate = 1;
 
     @Inject
     private Conversation conversation;
@@ -69,18 +71,30 @@ public class ConversionManager implements Serializable {
     public void setResult(String result) {
         this.result = result;
     }
+    
+    public double getRate() {
+        return this.rate;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+    
+    public void updateRate(){
+        this.setRate(this.conversionFacade.getConversionRate(this.getDeviseFrom(), this.getDeviseTo()));
+    }
 
     public void convert() {
         try {
             this.startConversation();
-            Double amountDouble = Double.parseDouble(this.amount);
-            double rate = this.conversionFacade.getConversionRate(this.deviseFrom, this.deviseTo);
-            this.result = Double.toString(amountDouble * rate);
-            this.amount = "";
+            Double amountDouble = Double.parseDouble(this.getAmount());
+            this.updateRate();
+            this.setResult(Double.toString(amountDouble * this.getRate()));
+            this.setAmount("");
         } catch (NumberFormatException e) {
             FacesContext.getCurrentInstance().addMessage("form:amount", new FacesMessage(Constants.ERROR_DOUBLE, Constants.ERROR_DOUBLE));
-            this.amount = "";
-            this.result = "";
+            this.setAmount("");
+            this.setResult("");
         } finally {
             this.stopConversation();
         }
@@ -104,6 +118,20 @@ public class ConversionManager implements Serializable {
         this.conversionFacade.createConversion(Constants.USD, Constants.EUR, 0.84059);
         this.conversionFacade.createConversion(Constants.GBP, Constants.USD, 1.34747);
         this.conversionFacade.createConversion(Constants.USD, Constants.GBP, 0.74213);
+    }
+    
+    public void valueFromChanged(ValueChangeEvent event) {
+        this.startConversation();
+        this.setDeviseFrom(event.getNewValue().toString());
+        this.updateRate();
+        this.stopConversation();
+    }
+    
+    public void valueToChanged(ValueChangeEvent event) {
+        this.startConversation();
+        this.setDeviseTo(event.getNewValue().toString());
+        this.updateRate();
+        this.stopConversation();
     }
 
 }

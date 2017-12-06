@@ -71,7 +71,7 @@ public class ConversionManager implements Serializable {
     public void setResult(String result) {
         this.result = result;
     }
-    
+
     public double getRate() {
         return this.rate;
     }
@@ -79,8 +79,8 @@ public class ConversionManager implements Serializable {
     public void setRate(double rate) {
         this.rate = rate;
     }
-    
-    public void updateRate(){
+
+    public void updateRate() {
         this.setRate(this.conversionFacade.getConversionRate(this.getDeviseFrom(), this.getDeviseTo()));
     }
 
@@ -139,14 +139,14 @@ public class ConversionManager implements Serializable {
         this.conversionFacade.createConversion(Constants.CHF, Constants.CAD, 1.29206);
         this.conversionFacade.createConversion(Constants.CAD, Constants.CHF, 0.77396);
     }
-    
+
     public void valueFromChanged(ValueChangeEvent event) {
         this.startConversation();
         this.setDeviseFrom(event.getNewValue().toString());
         this.updateRate();
         this.stopConversation();
     }
-    
+
     public void valueToChanged(ValueChangeEvent event) {
         this.startConversation();
         this.setDeviseTo(event.getNewValue().toString());

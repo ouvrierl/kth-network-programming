@@ -1,0 +1,35 @@
+html, body {
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
+
+body {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.title {
+    margin-bottom: 20%;
+}
+
+.conversion {
+    margin-top: 15%;
+}
+
+.amount {
+    margin-bottom: 10%;
+}
+
+.rate {
+    margin-top: 5%;
+    margin-bottom: 15%;
+}
+
+.error{
+    color:red;
+    margin-left:10px;
+}

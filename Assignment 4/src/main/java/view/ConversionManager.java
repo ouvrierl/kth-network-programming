@@ -106,6 +106,8 @@ public class ConversionManager implements Serializable {
         this.conversionFacade.createConversion(Constants.EUR, Constants.EUR, 1);
         this.conversionFacade.createConversion(Constants.USD, Constants.USD, 1);
         this.conversionFacade.createConversion(Constants.GBP, Constants.GBP, 1);
+        this.conversionFacade.createConversion(Constants.CAD, Constants.CAD, 1);
+        this.conversionFacade.createConversion(Constants.CHF, Constants.CHF, 1);
         this.conversionFacade.createConversion(Constants.SEK, Constants.EUR, 0.1007);
         this.conversionFacade.createConversion(Constants.EUR, Constants.SEK, 9.93073);
         this.conversionFacade.createConversion(Constants.SEK, Constants.USD, 0.11979);
@@ -118,6 +120,24 @@ public class ConversionManager implements Serializable {
         this.conversionFacade.createConversion(Constants.USD, Constants.EUR, 0.84059);
         this.conversionFacade.createConversion(Constants.GBP, Constants.USD, 1.34747);
         this.conversionFacade.createConversion(Constants.USD, Constants.GBP, 0.74213);
+        this.conversionFacade.createConversion(Constants.EUR, Constants.CAD, 1.50843);
+        this.conversionFacade.createConversion(Constants.CAD, Constants.EUR, 0.66294);
+        this.conversionFacade.createConversion(Constants.EUR, Constants.CHF, 1.16795);
+        this.conversionFacade.createConversion(Constants.CHF, Constants.EUR, 0.85620);
+        this.conversionFacade.createConversion(Constants.SEK, Constants.CAD, 0.15179);
+        this.conversionFacade.createConversion(Constants.CAD, Constants.SEK, 6.58825);
+        this.conversionFacade.createConversion(Constants.SEK, Constants.CHF, 0.11741);
+        this.conversionFacade.createConversion(Constants.CHF, Constants.SEK, 8.51724);
+        this.conversionFacade.createConversion(Constants.USD, Constants.CAD, 1.28028);
+        this.conversionFacade.createConversion(Constants.CAD, Constants.USD, 0.78108);
+        this.conversionFacade.createConversion(Constants.USD, Constants.CHF, 0.99087);
+        this.conversionFacade.createConversion(Constants.CHF, Constants.USD, 1.00920);
+        this.conversionFacade.createConversion(Constants.GBP, Constants.CAD, 1.71194);
+        this.conversionFacade.createConversion(Constants.CAD, Constants.GBP, 0.58413);
+        this.conversionFacade.createConversion(Constants.GBP, Constants.CHF, 1.32472);
+        this.conversionFacade.createConversion(Constants.CHF, Constants.GBP, 0.75487);
+        this.conversionFacade.createConversion(Constants.CHF, Constants.CAD, 1.29206);
+        this.conversionFacade.createConversion(Constants.CAD, Constants.CHF, 0.77396);
     }
     
     public void valueFromChanged(ValueChangeEvent event) {

@@ -1,4 +1,4 @@
-package kth.thehangmangame;
+package kth.thehangmangame.common.message;
 
 import java.util.ArrayList;
 import java.util.List;

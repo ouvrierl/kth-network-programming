@@ -1,4 +1,4 @@
-package kth.thehangmangame;
+package kth.thehangmangame.common.message;
 
 /**
  * Created by lucieouvrier-buffet on 04/12/2017.

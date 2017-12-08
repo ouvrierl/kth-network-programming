@@ -1,4 +1,4 @@
-package kth.thehangmangame;
+package kth.thehangmangame.common.exception;
 
 public class MessageException extends RuntimeException {
 

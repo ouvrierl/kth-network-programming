@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="shortcut icon" href="">
+        <title>Ads</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script type="text/javascript" src="websocket.js"></script>
+    </head>
+    <body>
+        <h1>Advertisements App</h1>
+            <form id="loginForm" name="loginForm" onsubmit="login(document.getElementById('emailLoginValue').value, document.getElementById('passwordLoginValue').value)" method="post" action="index.html">
+                <table>
+                    <tr>
+                        <td>Email</td>
+                        <td><input type="email" id="emailLoginValue"></td>
+                        <td>Password</td>
+                        <td><input type="password" id="passwordLoginValue"></td>
+                        <td><input type="submit" value="Login"></td>
+                    </tr>
+                </table>
+            </form>
+            <form id="createForm" name="createForm" onsubmit="create(document.getElementById('emailCreateValue').value, document.getElementById('passwordCreateValue').value);" method="post" action="index.html">
+                <table>
+                    <tr>
+                        <td>Email</td>
+                        <td><input type="email" id="emailCreateValue"></td>
+                        <td>Password</td>
+                        <td><input type="password" id="passwordCreateValue"></td>
+                        <td><input type="submit" value="Create an account"></td>
+                    </tr>
+                </table>
+            </form>
+            <label id="userEmail"></label>
+            <form id="logoutForm" name="logoutForm" onsubmit="logout()" method="post">
+                <table>
+                    <tr>
+                        <td><input type="submit" value="Logout"></td>
+                    </tr>
+                </table>
+            </form>
+            <script type="text/javascript">
+                if(getUser() == ""){
+                    var logoutForm = document.getElementById("logoutForm");
+                    logoutForm.style.display = 'none';
+                    var userEmail = document.getElementById("userEmail");
+                    userEmail.style.display = 'none';
+                }
+                else{
+                    var loginForm = document.getElementById("loginForm");
+                    loginForm.style.display = 'none';
+                    var createForm = document.getElementById("createForm");
+                    createForm.style.display = 'none';
+                    var userEmail = document.getElementById("userEmail");
+                    userEmail.innerHTML = getUser();
+                }
+            </script>
+        <table>
+            <tr>
+                <td>
+                    <form name="inputForm">
+                        <table>
+                            <tr>
+                                <td>
+                                    <a href="./listAds.html">List of advertisements</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a href="./addAd.html">Add an advertisement</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

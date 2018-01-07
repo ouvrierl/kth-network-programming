@@ -1,4 +1,4 @@
-var wsUri = "ws://" + document.location.host + "/WhiteboardApp/" + "adsendpoint";
+var wsUri = "ws://" + document.location.host + "/Ads/" + "adsendpoint";
 var websocket = new WebSocket(wsUri);
 
 websocket.onerror = function(evt) { onError(evt) };
@@ -9,8 +9,6 @@ function onError(evt) {
 }
 
 function sendText(json) {
-    while (websocket.readyState !== 1) {
-    }
     console.log("sending text: " + json);
     websocket.send(json);
 }
@@ -64,9 +62,6 @@ function onMessage(message) {
             var thead = document.createElement('thead');
             var trh = document.createElement('tr');
             var th = document.createElement('th');
-            th.appendChild(document.createTextNode(""));
-            trh.appendChild(th);
-            var th = document.createElement('th');
             th.appendChild(document.createTextNode("Title"));
             trh.appendChild(th);
             var th = document.createElement('th');
@@ -83,14 +78,15 @@ function onMessage(message) {
             trh.appendChild(th);
             thead.appendChild(trh);
             table.appendChild(thead);
+            table.setAttribute("border", "1");
             var tbody = document.createElement('tbody');
-            for(var i = 0; i < nbAds; i++){
+            for(var i = 1; i < nbAds; i++){
                 var tr = document.createElement('tr');
                 var row = adData[i].substring(0, adData[i].length - 1);
                 var rowSplit = row.split("{");
                 console.log(row);
                 var id;
-                for(var j = 0; j < rowSplit.length; j++){
+                for(var j = 1; j < rowSplit.length; j++){
                     if(j != 2 && j != 5){
                         var valueData = rowSplit[j].substring(0, rowSplit[j].length - 1);
                         console.log(valueData);
@@ -102,6 +98,7 @@ function onMessage(message) {
                         tr.appendChild(td);
                     }  
                 }
+                tr.setAttribute("style", "cursor: pointer");
                 tr.setAttribute("onclick", "document.location = './ad.html?id=" + id + "';");
                 tbody.appendChild(tr);
             }
@@ -123,8 +120,9 @@ function onMessage(message) {
             var body = document.getElementsByTagName('body')[0];
             var table = document.createElement('table');
             table.setAttribute("id", "table");
+            table.setAttribute("border", "1");
             var tbody = document.createElement('tbody');
-            for(var j = 0; j < rowSplit.length; j++){
+            for(var j = 1; j < rowSplit.length; j++){
                 var tr = document.createElement('tr');
                 var valueData = rowSplit[j].substring(0, rowSplit[j].length - 1);
                 console.log(valueData);
@@ -133,25 +131,25 @@ function onMessage(message) {
                 }
                 var td = document.createElement('td');
                 if(j == 1){
-                    td.appendChild(document.createTextNode("Title: "));    
+                    td.appendChild(document.createTextNode("Title"));    
                 }
                 else if (j == 2){
-                    td.appendChild(document.createTextNode("Description: "));    
+                    td.appendChild(document.createTextNode("Description"));    
                 }
                 else if (j == 3){
-                    td.appendChild(document.createTextNode("Price: "));    
+                    td.appendChild(document.createTextNode("Price"));    
                 }
                 else if (j == 4){
-                    td.appendChild(document.createTextNode("Category: "));    
+                    td.appendChild(document.createTextNode("Category"));    
                 }
                 else if (j == 5){
-                    td.appendChild(document.createTextNode("Seller: "));    
+                    td.appendChild(document.createTextNode("Seller"));    
                 }
                 else if (j == 6){
-                    td.appendChild(document.createTextNode("Location: "));    
+                    td.appendChild(document.createTextNode("Location"));    
                 }
                 else if (j == 7){
-                    td.appendChild(document.createTextNode("Advertisement number: "));    
+                    td.appendChild(document.createTextNode("Advertisement number"));    
                 }
                 tr.appendChild(td);
                 var td = document.createElement('td');

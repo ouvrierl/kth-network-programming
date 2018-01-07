@@ -61,6 +61,28 @@ function onMessage(message) {
             var body = document.getElementsByTagName('body')[0];
             var table = document.createElement('table');
             table.setAttribute("id", "table");
+            var thead = document.createElement('thead');
+            var trh = document.createElement('tr');
+            var th = document.createElement('th');
+            th.appendChild(document.createTextNode(""));
+            trh.appendChild(th);
+            var th = document.createElement('th');
+            th.appendChild(document.createTextNode("Title"));
+            trh.appendChild(th);
+            var th = document.createElement('th');
+            th.appendChild(document.createTextNode("Price"));
+            trh.appendChild(th);
+            var th = document.createElement('th');
+            th.appendChild(document.createTextNode("Category"));
+            trh.appendChild(th);
+            var th = document.createElement('th');
+            th.appendChild(document.createTextNode("Location"));
+            trh.appendChild(th);
+            var th = document.createElement('th');
+            th.appendChild(document.createTextNode("Advertisement number"));
+            trh.appendChild(th);
+            thead.appendChild(trh);
+            table.appendChild(thead);
             var tbody = document.createElement('tbody');
             for(var i = 0; i < nbAds; i++){
                 var tr = document.createElement('tr');
@@ -69,14 +91,16 @@ function onMessage(message) {
                 console.log(row);
                 var id;
                 for(var j = 0; j < rowSplit.length; j++){
-                    var valueData = rowSplit[j].substring(0, rowSplit[j].length - 1);
-                    console.log(valueData);
-                    if(j == rowSplit.length - 1){
-                        id = valueData;
-                    }
-                    var td = document.createElement('td');
-                    td.appendChild(document.createTextNode(valueData));
-                    tr.appendChild(td)
+                    if(j != 2 && j != 5){
+                        var valueData = rowSplit[j].substring(0, rowSplit[j].length - 1);
+                        console.log(valueData);
+                        if(j == rowSplit.length - 1){
+                            id = valueData;
+                        }
+                        var td = document.createElement('td');
+                        td.appendChild(document.createTextNode(valueData));
+                        tr.appendChild(td);
+                    }  
                 }
                 tr.setAttribute("onclick", "document.location = './ad.html?id=" + id + "';");
                 tbody.appendChild(tr);

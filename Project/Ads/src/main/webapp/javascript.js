@@ -46,8 +46,10 @@ function onMessage(message) {
         case "list":
             var dataComplete = "";
             for(i = 1; i < messageSplit.length; i++){
+                dataComplete += " ";
                 dataComplete += messageSplit[i];
             }
+            dataComplete = dataComplete.substring(1);
             var list = dataComplete;
             var adData = list.split("[");
             var nbAds = adData.length;
@@ -108,8 +110,10 @@ function onMessage(message) {
         case "get":
             var dataComplete = "";
             for(i = 1; i < messageSplit.length; i++){
+                dataComplete += " ";
                 dataComplete += messageSplit[i];
             }
+            dataComplete = dataComplete.substring(1);
             var list = dataComplete;
             var rowSplit = list.split("{");
             var toRemove = document.getElementById("table");
